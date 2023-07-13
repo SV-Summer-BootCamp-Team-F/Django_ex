@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-ei+d5(j38wpe9abp-nnc3q^sjc+!5bzs-$i=n!-9jj22gem$#w
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+SWAGGER_SETTINGS = {
+   'USE_SESSION_AUTH': True
+}
 ALLOWED_HOSTS = []
 
 
