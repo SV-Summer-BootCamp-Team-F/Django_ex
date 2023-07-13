@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 
 from pathlib import Path
-
+from neomodel import config
+config.MAX_POOL_SIZE = 50
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_neomodel',
     'myapp.apps.MyappConfig'
+    'rest_framework',
 ]
 NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7689')
 #bolt://user:password@localhost:포트번호
