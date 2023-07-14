@@ -1,10 +1,18 @@
-from rest_framework import permissions
 from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.shortcuts import render
+from rest_framework.decorators import api_view #api
+from rest_framework.response import Response #api
 
-# Create your views here.
-class TestView(APIView):
-    permission_classes = [permissions.AllowAny]
 
-    def get(self, request):
-        return Response("Swagger 연동 테스트")
+
+
+@api_view(['GET'])
+def get(request):
+    return Response(request)
+
+
+@api_view(['POST'])
+def post(request):
+    return Response(request)
+
+

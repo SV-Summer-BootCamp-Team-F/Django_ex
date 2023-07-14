@@ -40,11 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles', #swagger ui의 css,js 파일 제공하기 위해 필요한 장고 앱
     'drf_yasg',
     'django_neomodel',
     'myapp.apps.MyappConfig'
     'rest_framework',
+    'sample_swagger',
 ]
 NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7689')
 #bolt://user:password@localhost:포트번호

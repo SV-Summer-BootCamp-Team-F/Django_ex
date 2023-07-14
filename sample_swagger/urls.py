@@ -1,11 +1,12 @@
 from django.urls import path
-#from rest_framework.routers import DefaultRouter
-from sample_swagger.views import TestView
+from myapp.views import MyAPIView
 
-# Create a router and register our viewsets with it.
-# router = DefaultRouter()
+from django.urls import path
+from . import views
 
-# The API URLs are now determined automatically by the router.
+app_name='sample_swagger'
 urlpatterns = [
-    path('v1/test/', TestView.as_view(), name='test'),
+    path('/get_url',views.get, name = 'get'),
+    path('/post_url',views.post, name = 'post'),
 ]
+
