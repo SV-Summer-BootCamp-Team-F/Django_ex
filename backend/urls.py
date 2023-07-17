@@ -23,9 +23,12 @@ from drf_yasg import openapi
 
 
 
+#schema_url_patterns : 실제 API의 URL 패턴을 리스트 형태로 저장.
+#swagger 문서에서 보여질 엔드포인트를 결정
 schema_url_patterns = [
     path('', include('sample_swagger.urls')),
     ]
+
 schema_view = get_schema_view(
     openapi.Info(
         title="My API",
@@ -38,15 +41,16 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
+#swagger API 문서에 필요한 정보 설정, 이를 통해 생성
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('',include('sample_swagger.urls')),
     url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('admin/', admin.site.urls),
+    path('api/', include('sample_swagger.urls')),  # `sample_swagger` 앱의 urls.py 파일로 라우팅
 ]
-
 
 #if settings.DEBUG:
 #    urlpatterns += [

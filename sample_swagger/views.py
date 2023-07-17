@@ -1,18 +1,38 @@
-from rest_framework.views import APIView
-from django.shortcuts import render
-from rest_framework.decorators import api_view #api
-from rest_framework.response import Response #api
+from rest_framework import generics, permissions
+from .models import User
+from .serializers import UserSerializer
+from .models import Card
+from .serializers import CardSerializer
+class UserList(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+class CardCreate(generics.CreateAPIView):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
 
-@api_view(['GET'])
-def get(request):
-    return Response(request)
+class CardList(generics.ListAPIView):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
 
+class CardRetrieve(generics.RetrieveAPIView):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
 
-@api_view(['POST'])
-def post(request):
-    return Response(request)
+class CardUpdate(generics.UpdateAPIView):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
+
+class CardDelete(generics.DestroyAPIView):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
+
 
 

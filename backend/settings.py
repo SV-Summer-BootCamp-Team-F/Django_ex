@@ -33,7 +33,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
+AUTH_USER_MODEL = 'sample_swagger.User'
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -58,7 +58,7 @@ SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Token': {
             'type': 'apiKey',
-            'name': 'Authorization',
+            'name': 'bootcamp',
             'in': 'header'
         }
     },

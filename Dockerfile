@@ -14,7 +14,7 @@ COPY . .
 # 필요한 패키지 설치
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-
+RUN pip install Pillow
 # 환경 변수 설정
 ENV DJANGO_SECRET_KEY secret_value
 
