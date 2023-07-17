@@ -41,18 +41,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles', #swagger ui의 css,js 파일 제공하기 위해 필요한 장고 앱
-    'drf_yasg',
-    'django_neomodel',
+    'drf_yasg', #swagger  연동을 위해서 ISATALL
+    'django_neomodel', # neo4j연동에 필요
     'myapp.apps.MyappConfig'
-    'rest_framework',
-    'sample_swagger',
+    'rest_framework', #장고 연동을 위한 필요
+    'sample_swagger', #swagger 예제를 위해 필요
 ]
+
+#neo4j 연동을 위한 setting
 NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7689')
 #bolt://user:password@localhost:포트번호
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False
 NEOMODEL_ENCRYPTED_CONNECTION = True
 NEOMODEL_MAX_POOL_SIZE = 50
+
+#swwagger_setting 을 위한 연동
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
     'SECURITY_DEFINITIONS': {
