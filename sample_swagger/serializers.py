@@ -33,8 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card
-        fields = ['id', 'user', 'card_name', 'card_email', 'card_num', 'card_intro', 'card_photo', 'created_at',
-                          'updated_at']
+        fields = ['id', 'user', 'card_name', 'card_email', 'card_num', 'card_intro', 'card_photo', 'created_at','updated_at']
 
 class CardSerializer:
     pass

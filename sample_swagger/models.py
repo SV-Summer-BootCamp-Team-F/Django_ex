@@ -6,13 +6,14 @@ from backend import settings
 
 class CustomUserManager(BaseUserManager):
 #사용자 및 슈퍼사용자 생성을 처리하는 메소드
+#아직 미완성!!!(매개변수 불충분)
     def create_user(self, email, password=None, **extra_fields):
         #이메일 주어지지 않을 경우 검사
         if not email:
             raise ValueError('The Email field must be set')
         #이메일 없을 경우 valueError를 발생
         #이메일 반드시 필요하다는 것을 알려주는 에러 메시지
-        email = self.normalize_email(email)
+        #email = self.normalize_email(email)
         #BaseUserManager 메소드 호출. 주어진 이메일 정규화 한다
         user = self.model(email=email, **extra_fields)
         #user 객체 생성. email 방금 정규화한 email 사용하고 추가적인 필드는 extra에서 가지고 옴
