@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='User',
             fields=[
+                ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('user_name', models.CharField(max_length=255)),
                 ('user_email', models.EmailField(max_length=254, unique=True)),
                 ('password', models.CharField(max_length=255)),
@@ -22,8 +23,6 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('update_at', models.DateTimeField(auto_now=True)),
                 ('delete_at', models.DateTimeField(blank=True, null=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
             ],
             options={
                 'abstract': False,
