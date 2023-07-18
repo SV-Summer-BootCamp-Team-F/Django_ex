@@ -15,14 +15,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='User',
             fields=[
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('user_name', models.CharField(max_length=255)),
                 ('user_email', models.EmailField(max_length=254, unique=True)),
                 ('password', models.CharField(max_length=255)),
                 ('phone_num', models.CharField(max_length=20)),
-                ('user_photo', models.ImageField(blank=True, null=True, upload_to='users/photos')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('update_at', models.DateTimeField(auto_now=True)),
                 ('delete_at', models.DateTimeField(blank=True, null=True)),
