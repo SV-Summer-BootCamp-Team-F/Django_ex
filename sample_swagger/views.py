@@ -1,38 +1,17 @@
-from rest_framework import generics, permissions
-from .models import User
+from django.contrib.auth.models import User
+from rest_framework import viewsets
+from rest_framework import permissions
 from .serializers import UserSerializer
-from .models import Card
-from .serializers import CardSerializer
-class UserList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
+from .models import Users
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Users.objects.all().order_by('created_at')
+    #데이터베이스 가져와 최신 사용자부터 정렬된 순서대로 queryset 저장하는 것을 의미
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
-class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-class CardCreate(generics.CreateAPIView):
-    queryset = Card.objects.all()
-    serializer_class = CardSerializer
-
-class CardList(generics.ListAPIView):
-    queryset = Card.objects.all()
-    serializer_class = CardSerializer
-
-class CardRetrieve(generics.RetrieveAPIView):
-    queryset = Card.objects.all()
-    serializer_class = CardSerializer
-
-class CardUpdate(generics.UpdateAPIView):
-    queryset = Card.objects.all()
-    serializer_class = CardSerializer
-
-class CardDelete(generics.DestroyAPIView):
-    queryset = Card.objects.all()
-    serializer_class = CardSerializer
 
 
 
