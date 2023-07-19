@@ -1,7 +1,7 @@
-"""django_ex URL Configuration
+"""backend URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.2/topics/http/urls/
+    https://docs.djangoproject.com/en/4.1/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -13,19 +13,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# backend/urls.py
+
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from rest_framework import routers
+from neo_db.views import UserViewSet
+
+router = routers.DefaultRouter()
+router.register('Users', UserViewSet)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('sample_swagger.urls'))
-path('admin/', admin.site.urls),
-path('', include('sample_swagger.urls'))
+    path('', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
-#if settings.DEBUG:
-#    urlpatterns += [
-#         re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-#         re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-#         re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-#     ]
-
-
