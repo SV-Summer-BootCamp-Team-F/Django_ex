@@ -30,12 +30,8 @@ SWAGGER_SETTINGS = {
    'USE_SESSION_AUTH': True
 }
 ALLOWED_HOSTS = ['*']
-REST_FRAMEWORK = {
-'DEFAULT_PAGINATION_CLASS':'rest_framework.pagination.PageNumberPagination',
-'PAGE_SIZE': 10,
-'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
-AUTH_USER_MODEL = 'sample_swagger.Users'
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -47,10 +43,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles', #swagger ui의 css,js 파일 제공하기 위해 필요한 장고 앱
     'drf_yasg', #swagger  연동을 위해서 ISATALL
     'django_neomodel', # neo4j연동에 필요
-    'myapp.apps.MyappConfig',
     'rest_framework', #장고 연동을 위한 필요
-    'sample_swagger', #swagger 예제를 위해 필요. django_restframework
+    'neo_db.apps.Neo_dbConfig',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.AdminRenderer',
+    ]
+}
+
 
 #neo4j 연동을 위한 setting
 NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7689')
@@ -82,10 +86,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
 TEMPLATES = [
     {
@@ -155,8 +155,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
