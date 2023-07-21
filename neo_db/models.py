@@ -1,5 +1,5 @@
 # neo_db/models.py
-from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty
+from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty, RelationshipTo
 
 class USER(StructuredNode):
     uid = UniqueIdProperty()
@@ -10,44 +10,25 @@ class USER(StructuredNode):
     user_photo = StringProperty()
     is_user = BooleanProperty(default=True)
     created_at = DateProperty(auto_now_add=True)
+    updated_at = DateProperty(default_now=True)  # 이 줄 추가
+    cards = RelationshipTo('CARD', 'HAS_CARD')
 
-
-#  user_name = StringProperty(max_length=100, )
-#     user_email = StringProperty(max_length=50, )
-#     password = StringProperty(max_length=50,default='')
-#     phone_num = StringProperty(unique_index=True, max_length=20)
-#     user_photo = StringProperty(max_length=5000)
-#     is_user = BooleanProperty(default=True)
-#     delete_at = DateTimeProperty()
-#     created_at = DateTimeProperty(default_now=True)
-#     updated_at = DateTimeProperty(default=lambda: datetime.now())
-#
-#     # 사용자(User)와 카드(Card) 간의 관계 정의
-#     cards = RelationshipTo('CARD', 'HAVE')
 
 class CARD(StructuredNode):
-    card_name = StringProperty(max_length=100)
-    card_email = StringProperty(unique_index=True, max_length=50,)
-    card_intro = StringProperty(max_length=3000)
-    card_photo = StringProperty(max_length=5000)
-    created_at = DateTimeProperty(default_now=True)
-    updated_at = DateTimeProperty()
+    uid = UniqueIdProperty()
+    card_name = StringProperty(unique_index=True, required=True)
+    card_email = StringProperty(unique_index=True, required=True)
+    card_intro = StringProperty()
+    card_photo = StringProperty(required=True)
+    created_at = DateProperty(auto_now_add=True)
+    updated_at = DateProperty(default_now=True)
 
-    # 카드(Card)와 사용자(User) 간의 관계 정의
-    owner = RelationshipFrom('USER', 'HAVE')
 
 class HAS_RELATION(StructuredNode):
     relation_name = StringProperty(max_length=100)
     memo = StringProperty(max_length=100)
-    delete_at = DateTimeProperty()
-    created_at = DateTimeProperty(default_now=True)
-    updated_at = DateTimeProperty()
-
-    # 사용자(User)와 다른 사용자(User) 간의 관계 정의
-    user1 = RelationshipFrom('USER', 'HAS_RELATION')
-    user2 = RelationshipTo('USER', 'HAS_RELATION')
+    delete_at = DateProperty(auto_now_add=True)
+    created_at = DateProperty(auto_now_add=True)
+    updated_at = DateProperty(auto_now_add=True)
 
 
-# Relationships
-# USER.cards = RelationshipTo(CARD, 'HAS_CARD')
-# USER.relations = RelationshipTo(HAS_RELATION, 'HAS_RELATION')

@@ -14,6 +14,7 @@ class UserSerializer(serializers.Serializer):
     user_photo = serializers.CharField(max_length=5000, allow_blank=True)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()  # 이 줄 추가
 
     # 모델을 JSON 형태로 변환
     class Meta:
@@ -23,13 +24,25 @@ class UserSerializer(serializers.Serializer):
             'is_user', 'created_at', 'update_at', 'delete_at')
 
 
-class CardSerializer(serializers.ModelSerializer):
-    card_name = serializers.CharField()
+class LoginSerializer(serializers.Serializer):
+    user_email = serializers.EmailField()
+    password = serializers.CharField(max_length=50)
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        validated_data['password'] = hashed_password.decode('utf-8')
+        return validated_data
+
+
+from rest_framework import serializers
+
+class CardSerializer(serializers.Serializer):
+    card_name = serializers.CharField(max_length=100)
     card_email = serializers.EmailField()
-    card_info = serializers.CharField()
-    card_photo = serializers.CharField()
-    created_at = serializers.DateTimeField()
-    update_at = serializers.DateTimeField(allow_null=True)
+    card_intro = serializers.CharField(max_length=3000, allow_blank=True)
+    card_photo = serializers.CharField(max_length=5000)
+    created_at = serializers.DateField()
+    updated_at = serializers.DateTimeField()  # 이 줄 추가
     class Meta:
         model = CARD
         fields = (
@@ -53,11 +66,3 @@ class RelationshipSerializer(serializers.ModelSerializer):
 
 
 
-class LoginSerializer(serializers.Serializer):
-    user_email = serializers.EmailField()
-    password = serializers.CharField(max_length=50)
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        validated_data['password'] = hashed_password.decode('utf-8')
-        return validated_data
