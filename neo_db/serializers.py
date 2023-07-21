@@ -14,7 +14,7 @@ class UserSerializer(serializers.Serializer):
     user_photo = serializers.CharField(max_length=5000, allow_blank=True)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
-    updated_at = serializers.DateTimeField()  # 이 줄 추가
+    #updated_at = serializers.DateTimeField()  # 이 줄 추가
 
     # 모델을 JSON 형태로 변환
     class Meta:
@@ -42,7 +42,7 @@ class CardSerializer(serializers.Serializer):
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
     card_photo = serializers.CharField(max_length=5000)
     created_at = serializers.DateField()
-    updated_at = serializers.DateTimeField()  # 이 줄 추가
+    #update_at = serializers.DateTimeField()  # 이 줄 추가
     class Meta:
         model = CARD
         fields = (

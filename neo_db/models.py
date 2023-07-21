@@ -10,7 +10,7 @@ class USER(StructuredNode):
     user_photo = StringProperty()
     is_user = BooleanProperty(default=True)
     created_at = DateProperty(auto_now_add=True)
-    updated_at = DateProperty(default_now=True)  # 이 줄 추가
+    #updated_at = DateProperty(default_now=True)  # 이 줄 추가
     cards = RelationshipTo('CARD', 'HAS_CARD')
 
 
@@ -21,7 +21,7 @@ class CARD(StructuredNode):
     card_intro = StringProperty()
     card_photo = StringProperty(required=True)
     created_at = DateProperty(auto_now_add=True)
-    updated_at = DateProperty(default_now=True)
+    update_at = DateProperty(default_now=True)
 
 
 class HAS_RELATION(StructuredNode):
