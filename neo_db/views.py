@@ -20,7 +20,7 @@ class RegisterView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
             with driver.session() as session:
                 # 이메일 중복 확인
                 result = session.run("MATCH (user:User) WHERE user.email = $email RETURN user", email=data['user_email'])
@@ -55,7 +55,7 @@ class LoginView(views.APIView):
         password = request.data.get("password")
 
         # Connect to Neo4j
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+        driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
         with driver.session() as session:
             # Query to find user with provided email and password
             query = f"MATCH (n:User) WHERE n.email = '{user_email}' AND n.password = '{password}' RETURN n"
@@ -75,7 +75,7 @@ class LoginView(views.APIView):
 
 class UserInfoView(views.APIView):
     def get(self, request, user_id, format=None):
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+        driver = GraphDatabase.driver("bolt://18.234.205.8:7687",auth=basic_auth("neo4j", "religion-board-contribution"))
         with driver.session() as session:
             # user_id를 사용하여 사용자 정보를 검색
             result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
@@ -111,7 +111,7 @@ class UserUpdateView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
             with driver.session() as session:
                 # 이메일 중복 확인 제외
                 result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
@@ -147,7 +147,7 @@ class UpdateUserPhotoView(views.APIView):
                 return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+            driver = GraphDatabase.driver("bolt://18.234.205.8:7687",auth=basic_auth("neo4j", "religion-board-contribution"))
             with driver.session() as session:
                 # 해당 id의 사용자 찾기
                 result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=user_id)
@@ -174,7 +174,7 @@ class CardAddView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
             with driver.session() as session:
                 # 카드 추가
                 session.run("""
@@ -197,7 +197,7 @@ class CardAddView(views.APIView):
 
 
 class CardUpdateView(views.APIView):
-    def put(self, request, *args, **kwargs):
+    def put(self, request, card_id=None, *args, **kwargs):
         user_id = request.data.get('user_id', None)
         if user_id is None:
             return Response({"message": "유저 아이디가 필요합니다.", "result": None}, status=status.HTTP_400_BAD_REQUEST)
@@ -207,7 +207,7 @@ class CardUpdateView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "12345678"))
+            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
             with driver.session() as session:
                 # 이메일 중복 확인 제외
                 result = session.run("MATCH (card:Card) WHERE id(card) = $card_id RETURN card", user_id=int(card_id))

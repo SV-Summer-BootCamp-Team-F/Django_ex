@@ -61,7 +61,7 @@ REST_FRAMEWORK = {
 
 
 #neo4j 연동을 위한 setting
-NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7687')
+NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:religion-board-contribution@18.234.205.8:7687')
 #bolt://user:password@localhost:포트번호
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False
