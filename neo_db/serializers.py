@@ -14,7 +14,7 @@ class UserSerializer(serializers.Serializer):
     user_photo = serializers.CharField(max_length=5000, allow_blank=True)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
-
+#안녕
     class Meta:
         model = User
         fields = (

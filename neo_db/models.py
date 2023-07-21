@@ -10,3 +10,4 @@ class User(StructuredNode):
     user_photo = StringProperty()
     is_user = BooleanProperty(default=True)
     created_at = DateProperty(auto_now_add=True)
+#알
