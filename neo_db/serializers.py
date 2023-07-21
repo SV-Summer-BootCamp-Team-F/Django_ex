@@ -17,7 +17,7 @@ class UserSerializer(serializers.Serializer):
 
     # 모델을 JSON 형태로 변환
     class Meta:
-        model = User
+        model = USER
         fields = (
             'user_name', 'user_email', 'password', 'phone_num', 'user_photo',
             'is_user', 'created_at', 'update_at', 'delete_at')
