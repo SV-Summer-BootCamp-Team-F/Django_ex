@@ -1,10 +1,5 @@
-# backend/neo_db/serializers.py
 from rest_framework import serializers
 import bcrypt
-from rest_framework import serializers
-from .models import USER , CARD, HAS_RELATION
-
-SECRET_KEY = 'django-insecure-ei+d5(j38wpe9abp-nnc3q^sjc+!5bzs-$i=n!-9jj22gem$#w'  # Change this with your own secret key
 
 class UserSerializer(serializers.Serializer):
     user_name = serializers.CharField(max_length=100)
@@ -14,27 +9,33 @@ class UserSerializer(serializers.Serializer):
     user_photo = serializers.CharField(max_length=5000, allow_blank=True)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
-    update_at = serializers.DateTimeField()  # 이 줄 추가
+    update_at = serializers.DateTimeField()
 
-    # 모델을 JSON 형태로 변환
-    class Meta:
-        model = USER
-        fields = (
-            'user_name', 'user_email', 'password', 'phone_num', 'user_photo',
-            'is_user', 'created_at', 'update_at', 'delete_at')
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        validated_data['password'] = hashed_password.decode('utf-8')
+
+        ## NEO4J QUERY TO CREATE USER NODE ##
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        ## NEO4J QUERY TO UPDATE USER NODE ##
 
 
 class LoginSerializer(serializers.Serializer):
     user_email = serializers.EmailField()
     password = serializers.CharField(max_length=50)
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         validated_data['password'] = hashed_password.decode('utf-8')
-        return validated_data
 
+        ## NEO4J QUERY FOR LOGIN OPERATIONS ##
 
-from rest_framework import serializers
 
 class CardSerializer(serializers.Serializer):
     card_name = serializers.CharField(max_length=100)
@@ -42,27 +43,29 @@ class CardSerializer(serializers.Serializer):
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
     card_photo = serializers.CharField(max_length=5000)
     created_at = serializers.DateTimeField(required=False)
-    update_at = serializers.DateTimeField(required=False)  # required=False해주면 선택적으로 사용 가능
-    class Meta:
-        model = CARD
-        fields = (
-            'card_name', 'card_email', 'card_info', 'card_photo',
-            'created_at', 'update_at'
-        )
+    update_at = serializers.DateTimeField(required=False)
 
-class RelationshipSerializer(serializers.ModelSerializer):
+
+    ## NEO4J QUERY FOR CARD RELATED OPERATIONS ##
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        validated_data['password'] = hashed_password.decode('utf-8')
+
+        ## NEO4J QUERY TO CREATE USER NODE ##
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+
+class RelationshipSerializer(serializers.Serializer):
     relation_name = serializers.CharField()
     memo = serializers.CharField()
     created_at = serializers.DateTimeField()
-    card_id = serializers.CharField(source='card.id')
-    card_name = serializers.CharField(source='card.card_name')
-    user_photo = serializers.CharField(source='card.user_photo')
+    card_id = serializers.CharField()
+    card_name = serializers.CharField()
+    user_photo = serializers.CharField()
 
-    class Meta:
-        model = HAS_RELATION
-        fields = (
-            'relation_name', 'memo', 'created_at', 'card_id', 'card_name', 'user_photo'
-        )
-
-
-
+    ## NEO4J QUERY FOR RELATIONSHIP RELATED OPERATIONS ##

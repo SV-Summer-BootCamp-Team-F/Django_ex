@@ -1,16 +1,12 @@
-
 # views.py
 from django.http import JsonResponse
-from neo4j import GraphDatabase, basic_auth
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import UserSerializer, LoginSerializer, CardSerializer
+from .serializers import UserSerializer, LoginSerializer, CardSerializer, RelationshipSerializer
 from rest_framework import views
 from py2neo import Graph
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import views, status
-from rest_framework.response import Response
+from rest_framework import status, views
 from neo4j import GraphDatabase, basic_auth
 
 class RegisterView(views.APIView):
@@ -21,20 +17,20 @@ class RegisterView(views.APIView):
 
             # 필수 항목 확인
             if 'user_email' not in data or 'password' not in data:
-                return Response({"message": "이메일과 비밀번호는 필수로 입력해야 합니다.", "result": None}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "이메일과 비밀번호는 필수로 입력해야 합니다.", "result": None},
+                                status=status.HTTP_400_BAD_REQUEST)
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
+            driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
-                # 이메일 중복 확인
-                result = session.run("MATCH (user:User) WHERE user.email = $email RETURN user", {"email": data['user_email']})
-                if result.single():
-                    return Response({"message": "이미 존재하는 이메일입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
-
                 # 전화번호 중복 확인
-                result = session.run("MATCH (user:User) WHERE user.phone = $phone_num RETURN user", {"phone_num": data['phone_num']})
+                result = session.run("MATCH (user:User) WHERE user.phone = $phone_num RETURN user",
+                                     {"phone_num": data['phone_num']})
                 if result.single():
                     return Response({"message": "이미 존재하는 전화번호입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
+                # 이메일 중복 확인
+                result = session.run("MATCH (user:User) WHERE user.email = $email RETURN user",
+                                     {"email": data['user_email']})
 
                 # 새로운 사용자 추가
                 # 업데이트는 노드에 보이지 않음
@@ -58,15 +54,13 @@ class RegisterView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 class LoginView(views.APIView):
     def post(self, request):
         user_email = request.data.get("user_email")
         password = request.data.get("password")
 
         # Connect to Neo4j
-        driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
+        driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
         with driver.session() as session:
             # Query to find user with provided email and password
             query = f"MATCH (n:User) WHERE n.email = '{user_email}' AND n.password = '{password}' RETURN n"
@@ -86,7 +80,7 @@ class LoginView(views.APIView):
 
 class UserInfoView(views.APIView):
     def get(self, request, user_id, format=None):
-        driver = GraphDatabase.driver("bolt://18.234.205.8:7687",auth=basic_auth("neo4j", "religion-board-contribution"))
+        driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
         with driver.session() as session:
             # user_id를 사용하여 사용자 정보를 검색
             result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
@@ -122,7 +116,7 @@ class UserUpdateView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
+            driver = GraphDatabase.driver("bolt://localhost:7689", auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
                 # 이메일 중복 확인 제외
                 result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
@@ -151,31 +145,31 @@ class UserUpdateView(views.APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class UpdateUserPhotoView(views.APIView):
-        def put(self, request, user_id):  # url에서 user_id를 파라미터로 받습니다
-            user_photo = request.data.get('user_photo')  # 요청에서 user_photo를 얻습니다
-            if user_photo is None:
-                return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, user_id):  # url에서 user_id를 파라미터로 받습니다
+        user_photo = request.data.get('user_photo')  # 요청에서 user_photo를 얻습니다
+        if user_photo is None:
+            return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://18.234.205.8:7687",auth=basic_auth("neo4j", "religion-board-contribution"))
-            with driver.session() as session:
-                # 해당 id의 사용자 찾기
-                result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=user_id)
-                if not result.single():  # 사용자가 없는 경우
-                    return Response({"message": "유저 등록이 안돼있음.", "result": None}, status=status.HTTP_202_ACCEPTED)
+        # Neo4j에 연결
+        driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
+        with driver.session() as session:
+            # 해당 id의 사용자 찾기
+            result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=user_id)
+            if not result.single():  # 사용자가 없는 경우
+                return Response({"message": "유저 등록이 안돼있음.", "result": None}, status=status.HTTP_202_ACCEPTED)
 
-                # 사용자 프로필 사진 업데이트
-                session.run("""
+            # 사용자 프로필 사진 업데이트
+            session.run("""
                     MATCH (user:User)
                     WHERE id(user) = $user_id
                     SET user.photo = $user_photo
                 """, user_id=user_id, user_photo=user_photo)
 
-            return Response({
-                "message": "유저프로필사진 수정 성공",
-            }, status=status.HTTP_202_ACCEPTED)
-
+        return Response({
+            "message": "유저프로필사진 수정 성공",
+        }, status=status.HTTP_202_ACCEPTED)
 
 
 class CardAddView(views.APIView):
@@ -185,7 +179,7 @@ class CardAddView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
+            driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
                 # 카드 추가
                 session.run("""
@@ -195,7 +189,7 @@ class CardAddView(views.APIView):
                         intro: $card_intro,
                         photo: $card_photo,
                         created_at: date($created_at)
-                        
+
                     })
                 """, **data)
 
@@ -208,11 +202,6 @@ class CardAddView(views.APIView):
 
 
 
-from rest_framework import status, views
-from rest_framework.response import Response
-from neo4j import GraphDatabase, basic_auth
-from .serializers import CardSerializer
-
 class CardUpdateView(views.APIView):
     def put(self, request, card_id=None, *args, **kwargs):
         card_id = request.data.get('card_id', None)
@@ -224,7 +213,7 @@ class CardUpdateView(views.APIView):
             data = serializer.validated_data
 
             # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://18.234.205.8:7687", auth=basic_auth("neo4j", "religion-board-contribution"))
+            driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
                 # 명함 정보 확인
                 result = session.run("MATCH (card:Card) WHERE id(card) = $card_id RETURN card", card_id=int(card_id))
@@ -250,3 +239,36 @@ class CardUpdateView(views.APIView):
             }, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+#관계 전체 보기
+class MakeRelationView(APIView):
+    def post(self, request, user_id):  # user_id를 인자로 받습니다.
+        data = request.data
+        card_id = data.get('card_id')
+        relation_name = data.get('relation_name')
+        memo = data.get('memo')
+
+        driver = GraphDatabase.driver("bolt://localhost:7689", auth=basic_auth("neo4j", "12345678"))
+        with driver.session() as session:
+            # Check if user exists
+            result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", {"user_id": user_id})
+            user = result.single()
+            if not user:
+                return Response({"message": "유저 등록이 안돼있음.", "result": None}, status=status.HTTP_202_ACCEPTED)
+
+            # Check if card exists
+            result = session.run("MATCH (card:Card) WHERE id(card) = $card_id RETURN card", {"card_id": card_id})
+            card = result.single()
+            if not card:
+                return Response({"message": "카드 정보가 없습니다.", "result": None}, status=status.HTTP_404_NOT_FOUND)
+
+            # Create relation
+            session.run("""
+                MATCH (user:User), (card:Card)
+                WHERE id(user) = $user_id AND id(card) = $card_id
+                CREATE (user)-[relation:HAS_RELATION {relation_name: $relation_name, memo: $memo}]->(card)
+                RETURN type(relation)
+            """, {"user_id": user_id, "card_id": card_id, "relation_name": relation_name, "memo": memo})
+
+        return Response({"message": "관계 정보 만들기 성공", "result": {"card_id": card_id, "relation_name": relation_name}}, status=status.HTTP_201_CREATED)
