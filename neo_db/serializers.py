@@ -41,8 +41,8 @@ class CardSerializer(serializers.Serializer):
     card_email = serializers.EmailField()
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
     card_photo = serializers.CharField(max_length=5000)
-    created_at = serializers.DateField()
-    update_at = serializers.DateTimeField()  # 이 줄 추가
+    created_at = serializers.DateTimeField(required=False)
+    update_at = serializers.DateTimeField(required=False)  # required=False해주면 선택적으로 사용 가능
     class Meta:
         model = CARD
         fields = (
