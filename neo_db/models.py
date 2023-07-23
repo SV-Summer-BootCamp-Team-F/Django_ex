@@ -12,7 +12,7 @@ class USER(StructuredNode):
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(default_now=True)
     cards = RelationshipTo('CARD', 'HAS_CARD')
-    relations = RelationshipTo('HAS_RELATION', 'HAS_RELATION')
+    relations = RelationshipTo('HAVE', 'HAVE')
 
 class CARD(StructuredNode):
     uid = UniqueIdProperty()
@@ -23,13 +23,13 @@ class CARD(StructuredNode):
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(default_now=True)
     owners = RelationshipFrom('USER', 'HAS_CARD')
-    relations = RelationshipFrom('HAS_RELATION', 'HAS_RELATION')
+    relations = RelationshipFrom('HAVE', 'HAS_RELATION')
 
-class HAS_RELATION(StructuredNode):
+class HAVE(StructuredNode):
     relation_name = StringProperty(max_length=100)
     memo = StringProperty(max_length=100)
     delete_at = DateProperty(auto_now_add=True)
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(auto_now_add=True)
-    user = RelationshipFrom('USER', 'HAS_RELATION')
-    card = RelationshipTo('CARD', 'HAS_RELATION')
+    user = RelationshipFrom('USER', 'HAVE')
+    card = RelationshipTo('CARD', 'HAVE')

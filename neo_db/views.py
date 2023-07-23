@@ -242,6 +242,8 @@ class CardUpdateView(views.APIView):
 
 
 #관계 전체 보기
+
+#명함과 유저에 관계 설정
 class MakeRelationView(APIView):
     def post(self, request, user_id):  # user_id를 인자로 받습니다.
         data = request.data
@@ -267,8 +269,51 @@ class MakeRelationView(APIView):
             session.run("""
                 MATCH (user:User), (card:Card)
                 WHERE id(user) = $user_id AND id(card) = $card_id
-                CREATE (user)-[relation:HAS_RELATION {relation_name: $relation_name, memo: $memo}]->(card)
+                CREATE (user)-[relation:HAVE {relation_name: $relation_name, memo: $memo}]->(card)
                 RETURN type(relation)
             """, {"user_id": user_id, "card_id": card_id, "relation_name": relation_name, "memo": memo})
 
         return Response({"message": "관계 정보 만들기 성공", "result": {"card_id": card_id, "relation_name": relation_name}}, status=status.HTTP_201_CREATED)
+
+#관계 수정
+class UpdateRelationView(APIView):
+    def post(self, request, user_id):  # user_id를 인자로 받습니다.
+        data = request.data
+        card_id = data.get('card_id')
+        relation_name = data.get('relation_name')
+        memo = data.get('memo')
+
+        driver = GraphDatabase.driver("bolt://localhost:7689", auth=basic_auth("neo4j", "12345678"))
+        with driver.session() as session:
+            # Check if user exists
+            result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", {"user_id": user_id})
+            user = result.single()
+            if not user:
+                return Response({"message": "유저 등록이 안돼있음.", "result": None}, status=status.HTTP_202_ACCEPTED)
+
+            # Check if card exists
+            result = session.run("MATCH (card:Card) WHERE id(card) = $card_id RETURN card", {"card_id": card_id})
+            card = result.single()
+            if not card:
+                return Response({"message": "카드 정보가 없습니다.", "result": None}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if relation exists, if so update it, else create it
+            result = session.run("""
+                MATCH (user:User)-[relation:HAVE]->(card:Card)
+                WHERE id(user) = $user_id AND id(card) = $card_id
+                RETURN relation
+            """, {"user_id": user_id, "card_id": card_id})
+            relation = result.single()
+
+            if relation:
+                # Update relation if it exists
+                session.run("""
+                    MATCH (user:User)-[relation:HAVE]->(card:Card)
+                    WHERE id(user) = $user_id AND id(card) = $card_id
+                    SET relation.relation_name = $relation_name, relation.memo = $memo
+                    RETURN type(relation)
+                """, {"user_id": user_id, "card_id": card_id, "relation_name": relation_name, "memo": memo})
+                message = "관계 정보 업데이트 성공"
+
+            return Response({"message": message, "result": {"card_id": card_id, "relation_name": relation_name}}, status=status.HTTP_201_CREATED)
+

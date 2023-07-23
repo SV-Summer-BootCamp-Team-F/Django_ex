@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/v1/users/photo/<int:user_id>/', UpdateUserPhotoView.as_view()),  # <int:user_id> 부분에 실제 user_id를 넣습니다
     path('api/v1/cards/add/', CardAddView.as_view()),
     path('api/v1/cards/update/', CardUpdateView.as_view()),
-    path('api/v1/relations/make/<int:user_id>/', MakeRelationView.as_view(), name='make-relation'),
+    path('api/v1/relations/create/<int:user_id>/', MakeRelationView.as_view(), name='create-relation'),
+    path('api/v1/relations/update/<int:user_id>/', MakeRelationView.as_view(), name='update-relation'),
 ]
 #

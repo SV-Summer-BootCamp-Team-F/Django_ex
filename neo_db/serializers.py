@@ -68,4 +68,8 @@ class RelationshipSerializer(serializers.Serializer):
     card_name = serializers.CharField()
     user_photo = serializers.CharField()
 
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
     ## NEO4J QUERY FOR RELATIONSHIP RELATED OPERATIONS ##
