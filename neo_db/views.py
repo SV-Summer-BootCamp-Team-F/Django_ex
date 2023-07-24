@@ -200,24 +200,24 @@ class CardAddView(views.APIView):
 
             # Neo4j에 연결
             with driver.session() as session:
-                # 카드 추가
+                    # 카드 생성
                 session.run("""
-                    CREATE (card:Card {
-                        name: $card_name,
-                        email: $card_email,
-                        intro: $card_intro,
-                        photo: $card_photo,
-                        phone: $card_phone_num,
-                        created_at: date($created_at)
-                    })
-                """, **data)
+                        CREATE (card:Card {
+                            name: $card_name,
+                            email: $card_email,
+                            phone: $card_phone_num,
+                            intro: $card_intro,
+                            photo: $card_photo,
+                            created_at: date($created_at)
+                            })
+                    """, **data)
 
-                # 유저와 카드가 같은 폰 번호를 가지면 HAVE 관계 생성
+                    # 사용자와 카드를 연결
                 session.run("""
-                    MATCH (user:User), (card:Card)
-                    WHERE user.phone = $phone_num AND card.phone = $phone_num
-                    MERGE (user)-[r:HAVE]->(card)
-                """, {"phone": data['card_phone_num']})
+                        MATCH (user:User), (card:Card)
+                        WHERE user.phone_num = $user_phone_num AND card.phone_num = $card_phone_num
+                        MERGE (user)-[r:HAVE]->(card)
+                    """, {"user_phone_num": user_phone_num, "card_phone_num": card_phone_num})
 
             return Response({
                 "message": "본인 명함 등록 성공",
