@@ -9,7 +9,7 @@ class UserSerializer(serializers.Serializer):
     user_name = serializers.CharField(max_length=100)
     user_email = serializers.EmailField()
     password = serializers.CharField(max_length=50)
-    phone_num = serializers.CharField(max_length=20)
+    user_phone = serializers.CharField(max_length=20)
     user_photo = serializers.CharField(max_length=5000, allow_blank=True)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
@@ -44,6 +44,7 @@ class LoginSerializer(serializers.Serializer):
 class CardSerializer(serializers.Serializer):
     card_name = serializers.CharField(max_length=100)
     card_email = serializers.EmailField()
+    card_phone = serializers.CharField(max_length=20)
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
     card_photo = serializers.CharField(max_length=5000)
     created_at = serializers.DateTimeField(required=False)
@@ -53,7 +54,7 @@ class CardSerializer(serializers.Serializer):
         card = CARD(**validated_data)
         card.save()
 
-        user = USER.nodes.get_or_none(user_email=validated_data['card_email'])
+        user = USER.nodes.get_or_none(user_phone=validated_data['card_phone'])
         if user:
             user.cards.connect(card)
 

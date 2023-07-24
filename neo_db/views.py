@@ -41,8 +41,8 @@ class RegisterView(views.APIView):
 
             with driver.session() as session:
                 # 전화번호 중복 확인
-                result = session.run("MATCH (user:User) WHERE user.phone = $phone_num RETURN user",
-                                     {"phone_num": data['phone_num']})
+                result = session.run("MATCH (user:User) WHERE user.phone = $user_phone RETURN user",
+                                     {"user_phone": data['user_phone']})
                 if result.single():
                     return Response({"message": "이미 존재하는 전화번호입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
                 # 이메일 중복 확인
@@ -56,7 +56,7 @@ class RegisterView(views.APIView):
                         name: $user_name,
                         email: $user_email,
                         password: $password,
-                        phone: $phone_num,
+                        phone: $user_phone,
                         photo: $user_photo,
                         is_user: $is_user,
                         created_at: date($created_at)
@@ -109,7 +109,7 @@ class UserInfoView(views.APIView):
                         "user_name": user_info['name'],
                         "user_email": user_info['email'],
                         "password": user_info['password'],
-                        "phone_num": user_info['phone'],
+                        "user_phone": user_info['phone'],
                         "user_photo": user_info['photo']
                     }
                 }
@@ -145,7 +145,7 @@ class UserUpdateView(views.APIView):
                         name: $user_name,
                         email: $user_email,
                         password: $password,
-                        phone: $phone_num,
+                        phone: $user_phone,
                         photo: $user_photo,
                         is_user: $is_user,
                         updated_at: datetime()  // 현재 시간으로 업데이트
@@ -198,6 +198,7 @@ class CardAddView(views.APIView):
                     CREATE (card:Card {
                         name: $card_name,
                         email: $card_email,
+                        phone: $card_phone,
                         intro: $card_intro,
                         photo: $card_photo,
                         created_at: date($created_at)
@@ -207,9 +208,9 @@ class CardAddView(views.APIView):
                 # 동일한 이메일을 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
                 session.run("""
                     MATCH (user:User), (card:Card)
-                    WHERE user.email = $email AND card.email = $email
+                    WHERE user.phone = $phone AND card.phone = $phone
                     MERGE (user)-[r:HAVE]->(card)
-                """, email=data['card_email'])
+                """, phone=data['card_phone'])
 
             return Response({
                 "message": "본인 명함 등록 성공",
