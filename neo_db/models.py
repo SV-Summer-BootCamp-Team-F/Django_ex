@@ -1,8 +1,20 @@
 # neo_db/models.py
-from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty, RelationshipTo, RelationshipFrom
+from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty, RelationshipTo, \
+    RelationshipFrom, DateTimeProperty, StructuredRel
 
-class USER(StructuredNode):
+class HAVE(StructuredRel):
     uid = UniqueIdProperty()
+    created_at = DateTimeProperty(default_now=True)
+    updated_at = DateTimeProperty(default_now=True)
+
+class RELATION(StructuredRel):
+    uid = UniqueIdProperty()
+    relation_name = StringProperty(required=True)
+    memo = StringProperty()
+    created_at = DateTimeProperty(default_now=True)
+    updated_at = DateTimeProperty(default_now=True)
+class USER(StructuredNode):
+    #uid = UniqueIdProperty()
     user_name = StringProperty(unique_index=True, required=True)
     user_email = StringProperty(unique_index=True, required=True)
     password = StringProperty(required=True)
@@ -11,25 +23,17 @@ class USER(StructuredNode):
     is_user = BooleanProperty(default=True)
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(default_now=True)
-    cards = RelationshipTo('CARD', 'HAS_CARD')
-    relations = RelationshipTo('HAVE', 'HAVE')
+    cards = RelationshipTo('CARD', 'HAVE', model=HAVE)
+    users = RelationshipTo('USER', 'RELATION', model=RELATION)
 
 class CARD(StructuredNode):
-    uid = UniqueIdProperty()
+    #uid = UniqueIdProperty()
     card_name = StringProperty(unique_index=True, required=True)
     card_email = StringProperty(unique_index=True, required=True)
     card_intro = StringProperty()
+    card_phone_num = StringProperty(required=True)
     card_photo = StringProperty(required=True)
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(default_now=True)
-    owners = RelationshipFrom('USER', 'HAS_CARD')
-    relations = RelationshipFrom('HAVE', 'HAS_RELATION')
+    owners = RelationshipFrom('USER', 'HAVE', model=HAVE)
 
-class HAVE(StructuredNode):
-    relation_name = StringProperty(max_length=100)
-    memo = StringProperty(max_length=100)
-    delete_at = DateProperty(auto_now_add=True)
-    created_at = DateProperty(auto_now_add=True)
-    update_at = DateProperty(auto_now_add=True)
-    user = RelationshipFrom('USER', 'HAVE')
-    card = RelationshipTo('CARD', 'HAVE')
