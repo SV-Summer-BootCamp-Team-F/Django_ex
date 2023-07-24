@@ -1,6 +1,8 @@
 # 베이스 이미지 선택
 FROM python:3.9
 
+
+
 # 작업 디렉토리 설정
 WORKDIR /django_ex
 
@@ -15,6 +17,7 @@ COPY . .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN pip install Pillow
+RUN pip install neo4j-driver
 # 환경 변수 설정
 ENV DJANGO_SECRET_KEY secret_value
 

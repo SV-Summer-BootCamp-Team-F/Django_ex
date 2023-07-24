@@ -9,6 +9,26 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status, views
 from neo4j import GraphDatabase, basic_auth
 
+#cardupdate 파일
+from rest_framework import status, views
+from rest_framework.response import Response
+from neo4j import GraphDatabase, basic_auth
+from .serializers import CardSerializer
+
+from neomodel import config
+from django.conf import settings
+
+config.DATABASE_URL = settings.NEO4J_BOLT_URL
+config.DATABASE_AUTH = (settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
+
+# Neo4j 드라이버 생성
+driver = GraphDatabase.driver(config.DATABASE_URL, auth=basic_auth(*config.DATABASE_AUTH))
+
+
+# Neo4j에 연결
+# !!!!!!!!- driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678")) #1. 하드코딩이라 비추 (수정을 할때 마다 다 수정해줘야하므로 그런거는 세팅에서 값을 가져와 설정을 해둬야 다 변경이 가능합니다! ) 2.매 클래스마다 코딩이 반복됨(맨 상단에 드라이버를 고정해줄거예요,전역변수로 설정할거예요! ) , 이런건 환경변수를  드라이버를 매번 연결해야하면 다 변경해야해서 안좋음
+# command+g
+
 class RegisterView(views.APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -20,17 +40,20 @@ class RegisterView(views.APIView):
                 return Response({"message": "이메일과 비밀번호는 필수로 입력해야 합니다.", "result": None},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
+
                 # 전화번호 중복 확인
                 result = session.run("MATCH (user:User) WHERE user.phone = $phone_num RETURN user",
                                      {"phone_num": data['phone_num']})
                 if result.single():
                     return Response({"message": "이미 존재하는 전화번호입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
+
                 # 이메일 중복 확인
                 result = session.run("MATCH (user:User) WHERE user.email = $email RETURN user",
                                      {"email": data['user_email']})
+                if result.single():
+                    return Response({"message": "이미 존재하는 이메일입니다.", "result": None},
+                                    status=status.HTTP_204_NO_CONTENT)
 
                 # 새로운 사용자 추가
                 # 업데이트는 노드에 보이지 않음
@@ -59,8 +82,6 @@ class LoginView(views.APIView):
         user_email = request.data.get("user_email")
         password = request.data.get("password")
 
-        # Connect to Neo4j
-        driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
         with driver.session() as session:
             # Query to find user with provided email and password
             query = f"MATCH (n:User) WHERE n.email = '{user_email}' AND n.password = '{password}' RETURN n"
@@ -80,7 +101,7 @@ class LoginView(views.APIView):
 
 class UserInfoView(views.APIView):
     def get(self, request, user_id, format=None):
-        driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
+
         with driver.session() as session:
             # user_id를 사용하여 사용자 정보를 검색
             result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
@@ -115,8 +136,6 @@ class UserUpdateView(views.APIView):
         if serializer.is_valid():
             data = serializer.validated_data
 
-            # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7689", auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
                 # 이메일 중복 확인 제외
                 result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
@@ -152,8 +171,6 @@ class UpdateUserPhotoView(views.APIView):
         if user_photo is None:
             return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Neo4j에 연결
-        driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
         with driver.session() as session:
             # 해당 id의 사용자 찾기
             result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=user_id)
@@ -178,8 +195,6 @@ class CardAddView(views.APIView):
         if serializer.is_valid():
             data = serializer.validated_data
 
-            # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
                 # 카드 추가
                 session.run("""
@@ -202,6 +217,8 @@ class CardAddView(views.APIView):
 
 
 
+
+
 class CardUpdateView(views.APIView):
     def put(self, request, card_id=None, *args, **kwargs):
         card_id = request.data.get('card_id', None)
@@ -212,8 +229,6 @@ class CardUpdateView(views.APIView):
         if serializer.is_valid():
             data = serializer.validated_data
 
-            # Neo4j에 연결
-            driver = GraphDatabase.driver("bolt://localhost:7689",auth=basic_auth("neo4j", "12345678"))
             with driver.session() as session:
                 # 명함 정보 확인
                 result = session.run("MATCH (card:Card) WHERE id(card) = $card_id RETURN card", card_id=int(card_id))
@@ -251,7 +266,6 @@ class MakeRelationView(APIView):
         relation_name = data.get('relation_name')
         memo = data.get('memo')
 
-        driver = GraphDatabase.driver("bolt://localhost:7689", auth=basic_auth("neo4j", "12345678"))
         with driver.session() as session:
             # Check if user exists
             result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", {"user_id": user_id})
@@ -283,7 +297,6 @@ class UpdateRelationView(APIView):
         relation_name = data.get('relation_name')
         memo = data.get('memo')
 
-        driver = GraphDatabase.driver("bolt://localhost:7689", auth=basic_auth("neo4j", "12345678"))
         with driver.session() as session:
             # Check if user exists
             result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", {"user_id": user_id})

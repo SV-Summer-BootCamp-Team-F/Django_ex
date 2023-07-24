@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django_neomodel', # neo4j연동에 필요
     'rest_framework', #장고 연동을 위한 필요
     'neo_db.apps.Neo_dbConfig', #이건 neo4j?
+    'neo4django',
 ]
 
 REST_FRAMEWORK = {
@@ -60,9 +61,22 @@ REST_FRAMEWORK = {
 }
 
 
-#neo4j 연동을 위한 setting
-NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7689')
-#bolt://user:password@localhost:포트번호
+# # Neo4j 데이터베이스 설정
+# NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL', 'bolt://neo4j:123412341234@container_neo4j:7689')
+
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+}
+
+NEO4J_BOLT_URL = 'bolt://container_neo4j:7687'  # 로컬 Neo4j 주소
+NEO4J_USERNAME = 'neo4j'  # Neo4j 사용자 이름
+NEO4J_PASSWORD = '123412341234'  # Neo4j 비밀번호
+
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False
 NEOMODEL_ENCRYPTED_CONNECTION = True
