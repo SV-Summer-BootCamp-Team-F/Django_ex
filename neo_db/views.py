@@ -104,11 +104,11 @@ class LoginView(views.APIView):
 
 
 class UserInfoView(views.APIView):
-    def get(self, request, user_id, format=None):
+    def get(self, request, user_uid, format=None):
 
         with driver.session() as session:
-            # user_id를 사용하여 사용자 정보를 검색
-            result = session.run("MATCH (user:User) WHERE id(user) = $user_id RETURN user", user_id=int(user_id))
+            # user_uid를 사용하여 사용자 정보를 검색
+            result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", user_uid=user_uid)
             record = result.single()
             if record:
                 user_info = record['user']
