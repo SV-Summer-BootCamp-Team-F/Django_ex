@@ -25,11 +25,13 @@ services:
         DJANGO_SECRET_KEY: “*”
         DJANGO_CORS_ORIGIN_WHITELIST: “*”        # 장고 환경변수들 설정 접속권한 허용
     container_name: container_django
+    volumes:
+      - ./:/backend/
+    expose:
+      - 8000
     ports:
       - "8000:8000"
     depends_on:
       - neo4j
         #condition: service_healthy
-    command:
-      ["/usr/local/bin/python3", "manage.py", "runserver", "0.0.0.0:8000"]
-
+    command: python manage.py runserver 0.0.0.0:8000

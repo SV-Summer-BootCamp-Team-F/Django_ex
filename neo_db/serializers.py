@@ -22,7 +22,7 @@ class UserSerializer(serializers.Serializer):
 
         user = USER(**validated_data)
         user.save()
-        return user
+        return user  # 생성된 유저 인스턴스를 반환합니다.
 
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
@@ -41,6 +41,12 @@ class LoginSerializer(serializers.Serializer):
 
         ## NEO4J QUERY FOR LOGIN OPERATIONS ##
 
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
 class CardSerializer(serializers.Serializer):
     card_name = serializers.CharField(max_length=100)
     card_email = serializers.EmailField()
@@ -54,9 +60,11 @@ class CardSerializer(serializers.Serializer):
         card = CARD(**validated_data)
         card.save()
 
-        user = USER.nodes.get_or_none(user_phone=validated_data['card_phone'])
-        if user:
-            user.cards.connect(card)
+        user_uid = validated_data.get('user_uid')  # 유저의 uid를 가져옵니다.
+        if user_uid:
+            user = USER.nodes.get_or_none(uid=user_uid)  # uid를 사용하여 유저를 찾습니다.
+            if user:
+                user.cards.connect(card)  # 유저와 카드 사이에 HAVE 관계를 생성합니다.
 
         return card
 
@@ -71,7 +79,7 @@ class CardSerializer(serializers.Serializer):
 
 
 class HAVESerializer(serializers.Serializer):
-    uid = serializers.CharField()
+    have_uid = serializers.CharField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
@@ -85,7 +93,7 @@ class HAVESerializer(serializers.Serializer):
 
 
 class RelationSerializer(serializers.Serializer):
-    uid = serializers.UUIDField(read_only=True)
+    relation_uid = serializers.UUIDField(read_only=True)
     relation_name = serializers.CharField(required=True)
     memo = serializers.CharField()
     created_at = serializers.DateTimeField(read_only=True)

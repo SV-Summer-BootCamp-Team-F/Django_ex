@@ -1,7 +1,6 @@
 # neo_db/models.py
 from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty, RelationshipTo, \
-    RelationshipFrom, DateTimeProperty, StructuredRel
-
+    RelationshipFrom, DateTimeProperty, StructuredRel ,IntegerProperty
 class HAVE(StructuredRel):
     uid = UniqueIdProperty()
     created_at = DateTimeProperty(default_now=True)
@@ -14,7 +13,7 @@ class RELATION(StructuredRel):
     created_at = DateTimeProperty(default_now=True)
     updated_at = DateTimeProperty(default_now=True)
 class USER(StructuredNode):
-    #uid = UniqueIdProperty()
+
     user_name = StringProperty(unique_index=True, required=True)
     user_email = StringProperty(unique_index=True, required=True)
     password = StringProperty(required=True)
@@ -25,6 +24,10 @@ class USER(StructuredNode):
     update_at = DateProperty(default_now=True)
     cards = RelationshipTo('CARD', 'HAVE', model=HAVE)
     users = RelationshipTo('USER', 'RELATION', model=RELATION)
+
+
+
+
 
 class CARD(StructuredNode):
     #uid = UniqueIdProperty()

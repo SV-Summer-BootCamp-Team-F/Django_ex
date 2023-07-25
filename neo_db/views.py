@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, LoginSerializer, CardSerializer, HAVESerializer, RelationSerializer
 from rest_framework import views
 from py2neo import Graph
-from rest_framework_simplejwt.tokens import RefreshToken
 from .models import USER, CARD
 from rest_framework import status, views
 from neo4j import GraphDatabase, basic_auth
@@ -25,7 +24,7 @@ config.DATABASE_AUTH = (settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
 # Neo4j 드라이버 생성
 driver = GraphDatabase.driver(config.DATABASE_URL, auth=basic_auth(*config.DATABASE_AUTH))
 
-
+import  uuid
 class RegisterView(views.APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -37,7 +36,7 @@ class RegisterView(views.APIView):
                 return Response({"message": "이메일과 비밀번호는 필수로 입력해야 합니다.", "result": None},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # Neo4j에 연결
+
 
             with driver.session() as session:
                 # 전화번호 중복 확인
@@ -49,10 +48,15 @@ class RegisterView(views.APIView):
                 result = session.run("MATCH (user:User) WHERE user.email = $email RETURN user",
                                      {"email": data['user_email']})
 
+
                 # 새로운 사용자 추가
+                # UUID 생성
+                uid = str(uuid.uuid4())
+                data['uid'] = uid
                 # 업데이트는 노드에 보이지 않음
-                session.run("""
+                r = session.run("""
                     CREATE (user:User {
+                        uid: $uid,
                         name: $user_name,
                         email: $user_email,
                         password: $password,
@@ -62,6 +66,7 @@ class RegisterView(views.APIView):
                         created_at: date($created_at)
                     })
                 """, **data)
+
 
             return Response({
                 "message": "회원가입 성공",
@@ -81,7 +86,7 @@ class LoginView(views.APIView):
             # Query to find user with provided email and password
             query = f"MATCH (n:User) WHERE n.email = '{user_email}' AND n.password = '{password}' RETURN n"
             result = session.run(query).data()
-
+            print(result)
             if len(result) == 0:
                 return Response({'message': '로그인 실패, 유효하지 않은 이메일 혹은 비밀번호입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -89,9 +94,13 @@ class LoginView(views.APIView):
                 "message": "로그인 성공",
                 "result": {
                     "user_email": user_email,
+                    "uid": result[0]['n']['uid']
                 }
             }
             return Response(res, status=status.HTTP_200_OK)
+
+
+
 
 
 class UserInfoView(views.APIView):
@@ -185,12 +194,15 @@ class UpdateUserPhotoView(views.APIView):
         }, status=status.HTTP_202_ACCEPTED)
 
 
+
+
+
 class CardAddView(views.APIView):
     def post(self, request):
-        serializer = CardSerializer(data=request.data)
+        user_uid = request.data.get('user_uid')  # 'user_uid'를 request에서 추출
+        serializer = CardSerializer(data={**request.data, 'user_uid': user_uid})  # 'user_uid'를 serializer에 전달
         if serializer.is_valid():
             data = serializer.validated_data
-
 
             with driver.session() as session:
                 # 카드 추가
@@ -205,12 +217,12 @@ class CardAddView(views.APIView):
                     })
                 """, **data)
 
-                # 동일한 이메일을 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
+                # 동일한 uid를 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
                 session.run("""
                     MATCH (user:User), (card:Card)
-                    WHERE user.phone = $phone AND card.phone = $phone
+                    WHERE user.uid = $uid AND card.phone = $phone
                     MERGE (user)-[r:HAVE]->(card)
-                """, phone=data['card_phone'])
+                """, uid=user_uid, phone=data['card_phone'])  # 'uid'를 사용하여 사용자를 찾아 카드와 연결
 
             return Response({
                 "message": "본인 명함 등록 성공",
@@ -218,9 +230,6 @@ class CardAddView(views.APIView):
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 
 
 class CardUpdateView(views.APIView):
