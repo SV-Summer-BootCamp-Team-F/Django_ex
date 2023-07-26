@@ -46,16 +46,39 @@ class LoginSerializer(serializers.Serializer):
 
 
 class CardSerializer(serializers.Serializer):
-    card_uid = serializers.UUIDField(required=False)  # 추가
+    card_uid = serializers.UUIDField(read_only=True)  # 추가
     card_name = serializers.CharField(max_length=100)
     card_email = serializers.EmailField()
     card_phone = serializers.CharField(max_length=20)
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
-    card_photo = serializers.CharField(max_length=5000)
-    created_at = serializers.DateTimeField(required=False)
-    update_at = serializers.DateTimeField(required=False)
+    card_photo = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    update_at = serializers.DateTimeField(read_only=True)
+
+    def validate(self, attrs):
+       # attrs['card_uid'] = str(uuid.uuid4())
+        attrs['card_photo'] = ''
+        attrs['update_at'] = datetime.datetime.now()
+        attrs['created_at'] = datetime.datetime.now()
+        return attrs
 
 
+# class CardAddSerializer(serializers.Serializer):
+#     card_uid = serializers.UUIDField(read_only=True)  # 추가
+#     card_name = serializers.CharField(max_length=100)
+#     card_email = serializers.EmailField()
+#     card_phone = serializers.CharField(max_length=20)
+#     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
+#     card_photo = serializers.CharField(max_length=5000)
+#     created_at = serializers.DateTimeField(read_only=True)
+#     update_at = serializers.DateTimeField(read_only=True)
+#
+#     def validate(self, attrs):
+#         attrs['card_uid'] = str(uuid.uuid4())
+#         attrs['card_photo'] = ''
+#         attrs['update_at'] = datetime.datetime.now()
+#         attrs['created_at'] = datetime.datetime.now()
+#         return attrs
 class HAVESerializer(serializers.Serializer):
     have_uid = serializers.CharField()
     created_at = serializers.DateTimeField()

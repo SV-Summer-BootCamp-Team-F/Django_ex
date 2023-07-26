@@ -35,6 +35,7 @@ SWAGGER_SETTINGS = {
 }
 ALLOWED_HOSTS = ['*']
 
+APPEND_SLASH=False
 
 # Application definition
 
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework', #장고 연동을 위한 필요
     'neo_db.apps.Neo_dbConfig', #이건 neo4j?
     'neo4django',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -95,8 +97,13 @@ SWAGGER_SETTINGS = {
     },
 }
 
+##CORS
+CORS_ORIGIN_ALLOW_ALL=True # <- 모든 호스트 허용
+CORS_ALLOW_CREDENTIALS = True # <-쿠키가 cross-site HTTP 요청에 포함될 수 있다
+
 #이것도 확인
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -239,7 +239,7 @@ class CardAddView(views.APIView):
         serializer = CardSerializer(data={**request.data, 'user_uid': user_uid})  # 'user_uid'를 serializer에 전달
         if serializer.is_valid():
             data = serializer.validated_data
-
+            # 전화번호 기준
             with driver.session() as session:
                 uid = str(uuid.uuid4())
                 data['card_uid'] = uid
@@ -256,16 +256,45 @@ class CardAddView(views.APIView):
                     })
                 """, **data)
 
-                # 동일한 uid를 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
+                # 전화번호가 같은 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
                 session.run("""
-                    MATCH (user:User {uid: $user_uid}), (card:Card {uid: $card_uid})
+                    MATCH (user:User), (card:Card)
+                    WHERE user.phone = card.phone AND card.phone = $card_phone
                     MERGE (user)-[r:HAVE]->(card)
-                """, user_uid=user_uid, card_uid=data['card_uid'])
+                """, card_phone=data['card_phone'])
 
             return Response({
                 "message": "본인 명함 등록 성공",
                 "result": data
             }, status=status.HTTP_201_CREATED)
+
+            #uid 연동
+            # with driver.session() as session:
+            #     uid = str(uuid.uuid4())
+            #     data['card_uid'] = uid
+            #     # 카드 추가
+            #     session.run("""
+            #         CREATE (card:Card {
+            #             uid: $card_uid,
+            #             name: $card_name,
+            #             email: $card_email,
+            #             phone: $card_phone,
+            #             intro: $card_intro,
+            #             photo: $card_photo,
+            #             created_at: date($created_at)
+            #         })
+            #     """, **data)
+            #
+            #     # 동일한 uid를 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
+            #     session.run("""
+            #         MATCH (user:User {uid: $user_uid}), (card:Card {uid: $card_uid})
+            #         MERGE (user)-[r:HAVE]->(card)
+            #     """, user_uid=user_uid, card_uid=data['card_uid'])
+            #
+            # return Response({
+            #     "message": "본인 명함 등록 성공",
+            #     "result": data
+            # }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

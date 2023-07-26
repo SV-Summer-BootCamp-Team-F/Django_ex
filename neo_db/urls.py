@@ -10,7 +10,7 @@ urlpatterns = [
     path('cards/add/', CardAddView.as_view()),
     path('card/<str:card_uid>/', CardInfoView.as_view()),
     path('cards/update/', CardUpdateView.as_view()),
-    path('relations/user', UserRelationView.as_view(), name='create-relation'),
+    path('relations/user/', UserRelationView.as_view(), name='create-relation'),
     path('relations/first/<str:user_uid>/', RelationView.as_view()),
     path('relations/second/<str:user_uid>/', RelationDeepView.as_view()),
     path('relations/detail/<str:card_uid>/', CardDetailView.as_view(), name='card-detail'),
