@@ -37,11 +37,11 @@ schema_view = get_schema_view(                  #  API 스키마를 만들기 �
 
 urlpatterns = [
     path('admin/', admin.site.urls),             # 관리자 사이트에 대한 URL 패턴
-    path('', include('neo_db.urls')),            # 빈경로 URL 패턴으로, neo_db.urls로 시작하는 URL을 include합니다. 이는 neo_db 애플리케이션의 URL 설정을 추가하라는 의미
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'), # swagger UI의 JSON 또는 YAML 스키마를 조회하기 위한 URL
+    path('api/v1/', include('neo_db.urls')),            # 빈경로 URL 패턴으로, neo_db.urls로 시작하는 URL을 include합니다. 이는 neo_db 애플리케이션의 URL 설정을 추가하라는 의미
+    # re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'), # swagger UI의 JSON 또는 YAML 스키마를 조회하기 위한 URL
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),                 #  /swagger/ 경로에 대한 URL 패턴으로, Swagger UI를 사용하여 API 스키마를 조회
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),  # Redoc UI를 사용하여 API 스키마를 조회할 수 있도록 설정
-    path('api/', include('neo_db.urls'))   #neo_db.urls로 시작하는 URL을 include,  /USER/ 경로를 처리하기 위해 해당 애플리케이션의 URL 설정을 추가하라는 의미
+    # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),  # Redoc UI를 사용하여 API 스키마를 조회할 수 있도록 설정
+    # path('api/', include('neo_db.urls'))   #neo_db.urls로 시작하는 URL을 include,  /USER/ 경로를 처리하기 위해 해당 애플리케이션의 URL 설정을 추가하라는 의미
 ]
 
 #

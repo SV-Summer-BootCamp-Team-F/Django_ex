@@ -2,7 +2,8 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import UserSerializer, LoginSerializer, CardSerializer, HAVESerializer, RelationSerializer
+from .serializers import UserSerializer, LoginSerializer, CardSerializer, HAVESerializer, RelationSerializer, \
+    UserRegisterSerializer
 from rest_framework import views
 from py2neo import Graph
 from .models import USER, CARD
@@ -10,7 +11,7 @@ from rest_framework import status, views
 from neo4j import GraphDatabase, basic_auth
 from neomodel import db
 
-#cardupdate 파일
+# cardupdate 파일
 from rest_framework import status, views
 from rest_framework.response import Response
 from neo4j import GraphDatabase, basic_auth
@@ -25,12 +26,13 @@ config.DATABASE_AUTH = (settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD)
 # Neo4j 드라이버 생성
 driver = GraphDatabase.driver(config.DATABASE_URL, auth=basic_auth(*config.DATABASE_AUTH))
 
-import  uuid
+import uuid
+
 
 # 유저 정보 등록
 class RegisterView(views.APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
 
@@ -51,11 +53,7 @@ class RegisterView(views.APIView):
                 if result.single():
                     return Response({"message": "이미 존재하는 이메일입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
 
-
                 # 새로운 사용자 추가
-                # UUID 생성
-                uid = str(uuid.uuid4())
-                data['user_uid'] = uid
                 # 업데이트는 노드에 보이지 않음
                 r = session.run("""
                     CREATE (user:User {
@@ -70,7 +68,6 @@ class RegisterView(views.APIView):
                     })
                 """, **data)
 
-
             return Response({
                 "message": "회원가입 성공",
                 "result": data
@@ -79,7 +76,7 @@ class RegisterView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-#유저와 유저 연결
+# 유저와 유저 연결
 class UserRelationView(APIView):
     def post(self, request):
         data = request.data
@@ -117,12 +114,12 @@ class UserRelationView(APIView):
                                     "memo": memo}},
                         status=status.HTTP_201_CREATED)
 
-#로그인
+
+# 로그인
 class LoginView(views.APIView):
     def post(self, request):
         user_email = request.data.get("user_email")
         password = request.data.get("password")
-
 
         with driver.session() as session:
             query = f"MATCH (n:User) WHERE n.email = '{user_email}' AND n.password = '{password}' RETURN n"
@@ -141,8 +138,7 @@ class LoginView(views.APIView):
             return Response(res, status=status.HTTP_200_OK)
 
 
-
-#유저 정보 불러오기
+# 유저 정보 불러오기
 class UserInfoView(views.APIView):
     def get(self, request, user_uid, format=None):
 
@@ -167,10 +163,11 @@ class UserInfoView(views.APIView):
                     "message": "유저 등록이 안돼있음",
                     "result": None
                 }
-            return Response(res, status=status.HTTP_200_OK)
+
+            return Response(data=res, status=status.HTTP_200_OK)
 
 
-#유저 정보 업데이트
+# 유저 정보 업데이트
 class UserUpdateView(views.APIView):
     def put(self, request, *args, **kwargs):
         user_uid = request.data.get('user_uid', None)
@@ -209,13 +206,13 @@ class UserUpdateView(views.APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#유저 정보 사진 업데이트하기
+
+# 유저 정보 사진 업데이트하기
 class UpdateUserPhotoView(views.APIView):
     def put(self, request, user_uid):  # url에서 user_uid를 파라미터로 받습니다
         user_photo = request.data.get('user_photo')  # 요청에서 user_photo를 얻습니다
-        #if user_photo is None:
+        # if user_photo is None:
         #   return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
 
         with driver.session() as session:
             # 해당 uid의 사용자 찾기
@@ -235,8 +232,7 @@ class UpdateUserPhotoView(views.APIView):
         }, status=status.HTTP_202_ACCEPTED)
 
 
-
-#명함 등록 및 연결선 생성
+# 명함 등록 및 연결선 생성
 class CardAddView(views.APIView):
     def post(self, request):
         user_uid = request.data.get('user_uid')  # 'user_uid'를 request에서 추출
@@ -273,7 +269,8 @@ class CardAddView(views.APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#카드 정보 불러오기
+
+# 카드 정보 불러오기
 class CardInfoView(views.APIView):
     def get(self, request, card_uid, format=None):
 
@@ -301,7 +298,7 @@ class CardInfoView(views.APIView):
             return Response(res, status=status.HTTP_200_OK)
 
 
-#캬드 정보 업데이트
+# 캬드 정보 업데이트
 class CardUpdateView(views.APIView):
     def put(self, request, card_id=None, *args, **kwargs):
         card_id = request.data.get('card_id', None)
@@ -311,7 +308,6 @@ class CardUpdateView(views.APIView):
         serializer = CardSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
-
 
             with driver.session() as session:
                 # 명함 정보 확인
@@ -339,9 +335,12 @@ class CardUpdateView(views.APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 import logging
-#관계 전체 보기
-#전체 관계 보기(1촌)
+
+
+# 관계 전체 보기
+# 전체 관계 보기(1촌)
 class RelationView(views.APIView):
     def get(self, request, user_uid, format=None):
         with driver.session() as session:
@@ -377,7 +376,8 @@ class RelationView(views.APIView):
                 "result": None
             }, status=status.HTTP_400_BAD_REQUEST)
 
-#전체 관계 보기(2촌)
+
+# 전체 관계 보기(2촌)
 class RelationDeepView(APIView):
     def get(self, request, user_uid, format=None):
         with driver.session() as session:
@@ -436,7 +436,8 @@ class CardDetailView(views.APIView):
                 "result": card_info
             }, status=status.HTTP_200_OK)
 
-#번호 조회하가
+
+# 번호 조회하가
 class PhoneInfoView(views.APIView):
     def get(self, request, user_phone):
         with driver.session() as session:
@@ -453,9 +454,3 @@ class PhoneInfoView(views.APIView):
             return Response({
                 "message": "번호 조회 성공",
             }, status=status.HTTP_200_OK)
-
-
-
-
-
-
