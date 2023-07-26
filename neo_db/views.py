@@ -247,18 +247,19 @@ class CardAddView(views.APIView):
             with driver.session() as session:
                 uid = str(uuid.uuid4())
                 data['card_uid'] = uid
-                # 카드 추가
+                # 카드 추가(노드에 추가되는 필드를 지정함 (name 과 user_name은 다르게 들어가요!))
                 session.run("""
                     CREATE (card:Card {
                        uid: $card_uid,
-                        card_name: $card_name,
-                        card_email: $card_email,
-                        card_phone: $card_phone,
-                        card_intro: $card_intro,
-                        card_photo: $card_photo,
+                        name: $card_name,
+                        email: $card_email,
+                        phone: $card_phone,
+                        intro: $card_intro,
+                        photo: $card_photo,
                         created_at: date($created_at)
                     })
                 """, **data)
+
 
                 # 동일한 uid를 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
                 session.run("""
@@ -279,7 +280,7 @@ class CardInfoView(views.APIView):
 
         with driver.session() as session:
             # card_uid를 사용하여 카드 정보를 검색
-            result = session.run("MATCH (card:CARD) WHERE card.card_uid = $card_uid RETURN card", card_uid=card_uid)
+            result = session.run("MATCH (card:Card) WHERE card.uid = $card_uid RETURN card", card_uid=card_uid)
             record = result.single()
             if record:
                 card_info = record['card']
@@ -290,6 +291,7 @@ class CardInfoView(views.APIView):
                         "card_email": card_info['card_email'],
                         "card_phone": card_info['card_phone'],
                         "card_intro": card_info['card_intro'],
+                        "card_photo": card_info['card_photo']
                     }
                 }
             else:
@@ -298,6 +300,7 @@ class CardInfoView(views.APIView):
                     "result": None
                 }
             return Response(res, status=status.HTTP_200_OK)
+
 
 
 #캬드 정보 수정하기
