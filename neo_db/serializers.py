@@ -1,4 +1,5 @@
 #serlializers
+#(여기는 필수항목리아고 뜨는 json문에 대한 응답을 보여주는 항목들이라고 생각하시면 됩니다~ 아 노드의 들어가는 것들을 나열한 거라고 생각하세요~)
 from rest_framework import serializers
 import bcrypt
 from neo4j import GraphDatabase, basic_auth
@@ -6,19 +7,28 @@ from .models import USER, CARD, HAVE, RELATION  # models 모듈에서 USER, CARD
 
 
 class UserSerializer(serializers.Serializer):
+    user_uid = serializers.UUIDField(required=False)
     user_name = serializers.CharField(max_length=100)
     user_email = serializers.EmailField()
     password = serializers.CharField(max_length=50)
     user_phone = serializers.CharField(max_length=20)
-    user_photo = serializers.CharField(max_length=5000, allow_blank=True)
+    user_photo = serializers.CharField(max_length=5000, allow_blank=True, required=False)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
-    update_at = serializers.DateTimeField()
+    #updated_at = serializers.DateTimeField()
+
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         validated_data['password'] = hashed_password.decode('utf-8')
+
+        # user_photo 필드를 체크하여 값이 없는 경우 기본 이미지 URL로 설정
+        user_photo = validated_data.get('user_photo')
+        if not user_photo.strip():  # 공백 문자만으로 이루어진 경우도 처리
+            validated_data[
+                'user_photo'] = 'https://blog.kakaocdn.net/dn/EZGfg/btrEJIAOElH/8IlocIaObhbFMG4HPZAmH1/img.png'
+        # 기본 이미지 URL로 설정
 
         user = USER(**validated_data)
         user.save()
@@ -39,8 +49,6 @@ class LoginSerializer(serializers.Serializer):
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         validated_data['password'] = hashed_password.decode('utf-8')
 
-        ## NEO4J QUERY FOR LOGIN OPERATIONS ##
-
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -48,6 +56,7 @@ class LoginSerializer(serializers.Serializer):
         return instance
 
 class CardSerializer(serializers.Serializer):
+    card_uid = serializers.UUIDField(required=False) #추가
     card_name = serializers.CharField(max_length=100)
     card_email = serializers.EmailField()
     card_phone = serializers.CharField(max_length=20)
@@ -74,23 +83,15 @@ class CardSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-
-# HAVE Serializer는 별도로 필요하지 않을 것으로 보입니다.
-
-
 class HAVESerializer(serializers.Serializer):
     have_uid = serializers.CharField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
     def create(self, validated_data):
-        # NEO4J QUERY TO CREATE HAVE RELATIONSHIP #
-
         def update(self, instance, validated_data):
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
-        ## NEO4J QUERY TO UPDATE HAVE RELATIONSHIP ##
-
 
 class RelationSerializer(serializers.Serializer):
     relation_uid = serializers.UUIDField(read_only=True)

@@ -63,7 +63,7 @@ REST_FRAMEWORK = {
 
 # # Neo4j 데이터베이스 설정
 # NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL', 'bolt://neo4j:123412341234@container_neo4j:7689')
-
+DATABASE_URL = "bolt://user:password@container_neo4j:7687"
 
 
 DATABASES = {
@@ -73,9 +73,10 @@ DATABASES = {
     },
 }
 
-NEO4J_BOLT_URL = 'bolt://container_neo4j:7687'  # 로컬 Neo4j 주소
-NEO4J_USERNAME = 'neo4j'  # Neo4j 사용자 이름
-NEO4J_PASSWORD = '123412341234'  # Neo4j 비밀번호
+NEO4J_BOLT_URL = 'bolt://container_neo4j:7687'
+NEO4J_USERNAME = 'neo4j'
+NEO4J_PASSWORD = '123412341234'
+
 
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False

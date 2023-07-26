@@ -1,36 +1,33 @@
-# neo_db/models.py
 from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty, RelationshipTo, \
-    RelationshipFrom, DateTimeProperty, StructuredRel ,IntegerProperty
+    RelationshipFrom, DateTimeProperty, StructuredRel
+
 class HAVE(StructuredRel):
     uid = UniqueIdProperty()
     created_at = DateTimeProperty(default_now=True)
     updated_at = DateTimeProperty(default_now=True)
 
 class RELATION(StructuredRel):
-    uid = UniqueIdProperty()
+    relatoion_uid = StringProperty()  # UUID는 문자열로 저장됩니다.(이름 변경)
     relation_name = StringProperty(required=True)
     memo = StringProperty()
     created_at = DateTimeProperty(default_now=True)
     updated_at = DateTimeProperty(default_now=True)
-class USER(StructuredNode):
 
+class USER(StructuredNode):
+    user_uid = StringProperty(required=False)  #그냥 추가
     user_name = StringProperty(unique_index=True, required=True)
     user_email = StringProperty(unique_index=True, required=True)
     password = StringProperty(required=True)
-    user_phone = StringProperty(required=True)
+    user_phone = StringProperty(required=True,unique_index=True)
     user_photo = StringProperty()
     is_user = BooleanProperty(default=True)
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(default_now=True)
     cards = RelationshipTo('CARD', 'HAVE', model=HAVE)
-    users = RelationshipTo('USER', 'RELATION', model=RELATION)
-
-
-
-
+    relations = RelationshipTo('USER', 'RELATION', model=RELATION)  # Use this line only
 
 class CARD(StructuredNode):
-    #uid = UniqueIdProperty()
+    card_uid = StringProperty(required=False) #추가
     card_name = StringProperty(unique_index=True, required=True)
     card_email = StringProperty(unique_index=True, required=True)
     card_phone = StringProperty(required=True)
@@ -39,3 +36,5 @@ class CARD(StructuredNode):
     created_at = DateProperty(auto_now_add=True)
     update_at = DateProperty(default_now=True)
     owners = RelationshipFrom('USER', 'HAVE', model=HAVE)
+
+
