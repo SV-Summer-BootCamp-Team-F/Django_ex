@@ -273,6 +273,32 @@ class CardAddView(views.APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#카드 정보 불러오기
+class CardInfoView(views.APIView):
+    def get(self, request, card_uid, format=None):
+
+        with driver.session() as session:
+            # card_uid를 사용하여 카드 정보를 검색
+            result = session.run("MATCH (card:Card) WHERE card.uid = $card_uid RETURN card", card_uid=card_uid)
+            record = result.single()
+            if record:
+                card_info = record['card']
+                res = {
+                    "message": "명함정보 불러오기 성공",
+                    "result": {
+                        "card_name": card_info['name'],
+                        "card_email": card_info['email'],
+                        "card_phone": card_info['phone'],
+                        "card_intro": card_info['intro'],
+                        "card_photo": card_info['photo']
+                    }
+                }
+            else:
+                res = {
+                    "message": "해당 카드가 없습니다.",
+                    "result": None
+                }
+            return Response(res, status=status.HTTP_200_OK)
 
 
 #캬드 정보 업데이트
