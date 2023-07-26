@@ -251,11 +251,11 @@ class CardAddView(views.APIView):
                 session.run("""
                     CREATE (card:Card {
                        uid: $card_uid,
-                        name: $card_name,
-                        email: $card_email,
-                        phone: $card_phone,
-                        intro: $card_intro,
-                        photo: $card_photo,
+                        card_name: $card_name,
+                        card_email: $card_email,
+                        card_phone: $card_phone,
+                        card_intro: $card_intro,
+                        card_photo: $card_photo,
                         created_at: date($created_at)
                     })
                 """, **data)
@@ -279,7 +279,7 @@ class CardInfoView(views.APIView):
 
         with driver.session() as session:
             # card_uid를 사용하여 카드 정보를 검색
-            result = session.run("MATCH (card:Card) WHERE card.uid = $card_uid RETURN card", card_uid=card_uid)
+            result = session.run("MATCH (card:CARD) WHERE card.card_uid = $card_uid RETURN card", card_uid=card_uid)
             record = result.single()
             if record:
                 card_info = record['card']
@@ -290,7 +290,6 @@ class CardInfoView(views.APIView):
                         "card_email": card_info['card_email'],
                         "card_phone": card_info['card_phone'],
                         "card_intro": card_info['card_intro'],
-                        "card_photo": card_info['card_photo']
                     }
                 }
             else:
@@ -299,6 +298,7 @@ class CardInfoView(views.APIView):
                     "result": None
                 }
             return Response(res, status=status.HTTP_200_OK)
+
 
 #캬드 정보 수정하기
 class CardUpdateView(views.APIView):
