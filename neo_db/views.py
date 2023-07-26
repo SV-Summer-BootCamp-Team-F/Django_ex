@@ -326,7 +326,7 @@ class CardInfoView(views.APIView):
                 }
             return Response(res, status=status.HTTP_200_OK)
 
-
+#
 # 캬드 정보 업데이트
 class CardUpdateView(views.APIView):
     def put(self, request, card_id=None, *args, **kwargs):
