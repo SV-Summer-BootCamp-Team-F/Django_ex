@@ -170,21 +170,18 @@ class UserInfoView(views.APIView):
 # 유저 정보 업데이트
 class UserUpdateView(views.APIView):
     def put(self, request, *args, **kwargs):
-        user_uid = request.data.get('user_uid', None)
-        if user_uid is None:
-            return Response({"message": "유저 UID가 필요합니다.", "result": None}, status=status.HTTP_400_BAD_REQUEST)
+        user_uid = kwargs.get('user_uid')
 
-        serializer = UserSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
+            data['user_uid'] = user_uid
 
             with driver.session() as session:
-                # 이메일 중복 확인 제외
                 result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid})
                 if not result.single():
                     return Response({"message": "존재하지 않는 유저입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
 
-                # 사용자 정보 수정
                 session.run("""
                        MATCH (user:User)
                        WHERE user.uid = $user_uid
@@ -194,17 +191,16 @@ class UserUpdateView(views.APIView):
                            password: $password,
                            phone: $user_phone,
                            photo: $user_photo,
-                           is_user: $is_user,
-                           created_at: datetime()  // 현재 시간으로 업데이트
+                           is_user: $is_user
                        }
-                   """, {"user_uid": user_uid, **data})
+                   """, data)
 
             return Response({
                 "message": "유저정보 수정 성공",
                 "result": data
             }, status=status.HTTP_202_ACCEPTED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # 유저 정보 사진 업데이트하기
