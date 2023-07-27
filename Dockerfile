@@ -2,23 +2,23 @@
 FROM python:3.9
 
 # 작업 디렉토리 설정
-WORKDIR /django_ex
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update
-RUN apt-get install -y python3 pip
+ARG DJANGO_ALLOWED_HOSTS
+ARG DJANGO_SECRET_KEY
+ARG DJANGO_CORS_ORIGIN_WHITELIST
 
-# 필요한 파일 복사
-COPY requirements.txt .
-COPY . .
+ENV DJANGO_ALLOWED_HOSTS $DJANGO_ALLOWED_HOSTS
+ENV DJANGO_SECRET_KEY $DJANGO_SECRET_KEY
+ENV DJANGO_CORS_ORIGIN_WHITELIST $DJANGO_CORS_ORIGIN_WHITELIST
 
-# 필요한 패키지 설치
+WORKDIR /backend
+COPY requirements.txt /backend/
+
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN pip install Pillow
-# 환경 변수 설정
-ENV DJANGO_SECRET_KEY secret_value
+RUN pip install neo4j-driver
 
-EXPOSE 8000
-
-# 컨테이너 실행 시 실행할 명령 설정
-CMD python3 manage.py runserver 0.0.0.0:8000
+COPY . /backend/

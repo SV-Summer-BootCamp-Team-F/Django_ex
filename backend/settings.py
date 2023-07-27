@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import os
-
 from pathlib import Path
+
 from neomodel import config
 config.MAX_POOL_SIZE = 50
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,11 +27,15 @@ SECRET_KEY = 'django-insecure-ei+d5(j38wpe9abp-nnc3q^sjc+!5bzs-$i=n!-9jj22gem$#w
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+#스웨거가 있는데 이거 뭘까요 -재민
+
 SWAGGER_SETTINGS = {
    'USE_SESSION_AUTH': True
 }
 ALLOWED_HOSTS = ['*']
 
+APPEND_SLASH=False
 
 # Application definition
 
@@ -44,7 +49,9 @@ INSTALLED_APPS = [
     'drf_yasg', #swagger  연동을 위해서 ISATALL
     'django_neomodel', # neo4j연동에 필요
     'rest_framework', #장고 연동을 위한 필요
-    'neo_db.apps.Neo_dbConfig',
+    'neo_db.apps.Neo_dbConfig', #이건 neo4j?
+    'neo4django',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -56,9 +63,23 @@ REST_FRAMEWORK = {
 }
 
 
-#neo4j 연동을 위한 setting
-NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL','bolt://neo4j:12345678@localhost:7689')
-#bolt://user:password@localhost:포트번호
+# # Neo4j 데이터베이스 설정
+# NEO4J_BOLT_URL = os.environ.get('NEO4J_BOLT_URL', 'bolt://neo4j:123412341234@container_neo4j:7689')
+DATABASE_URL = "bolt://user:password@container_neo4j:7687"
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+}
+
+NEO4J_BOLT_URL = 'bolt://container_neo4j:7687'
+NEO4J_USERNAME = 'neo4j'
+NEO4J_PASSWORD = '123412341234'
+
+
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False
 NEOMODEL_ENCRYPTED_CONNECTION = True
@@ -75,7 +96,14 @@ SWAGGER_SETTINGS = {
         }
     },
 }
+
+##CORS
+CORS_ORIGIN_ALLOW_ALL=True # <- 모든 호스트 허용
+CORS_ALLOW_CREDENTIALS = True # <-쿠키가 cross-site HTTP 요청에 포함될 수 있다
+
+#이것도 확인
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -90,8 +118,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -113,7 +140,8 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR , 'db.sqlite3'),
+
+        'NAME':  os.path.join(BASE_DIR , 'db.sqlite3'),  # os.path.join, 확인해야함
     }
 }
 
@@ -140,9 +168,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
+
 
 USE_I18N = True
 

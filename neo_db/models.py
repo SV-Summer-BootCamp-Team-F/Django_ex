@@ -1,29 +1,40 @@
-# neo_db/models.py
-from django.db import models
-from neomodel import StructuredNode, StringProperty, IntegerProperty, UniqueIdProperty
-from neo4j import GraphDatabase
-from django.core.exceptions import ValidationError
+from neomodel import StructuredNode, StringProperty, BooleanProperty, DateProperty, UniqueIdProperty, RelationshipTo, \
+    RelationshipFrom, DateTimeProperty, StructuredRel
 
-class User(models.Model):
-    user_name = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
-    user_email = models.EmailField(unique=True)
-    phone_num = models.CharField(max_length=20)
-    user_photo = models.CharField(max_length=5000, blank=True, null=True)
-    is_user = models.BooleanField(default=True)
-    created_at = models.DateField(auto_now_add=True)
+class HAVE(StructuredRel):
+    uid = UniqueIdProperty()
+    created_at = DateTimeProperty(default_now=True)
+    updated_at = DateTimeProperty(default_now=True)
 
+class RELATION(StructuredRel):
+    relatoion_uid = StringProperty()  # UUID는 문자열로 저장됩니다.(이름 변경)
+    relation_name = StringProperty(required=True)
+    memo = StringProperty()
+    created_at = DateTimeProperty(default_now=True)
+    updated_at = DateTimeProperty(default_now=True)
 
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+class USER(StructuredNode):
+    user_uid = StringProperty(required=False)  #그냥 추가
+    user_name = StringProperty(unique_index=True, required=True)
+    user_email = StringProperty(unique_index=True, required=True)
+    password = StringProperty(required=True)
+    user_phone = StringProperty(required=True,unique_index=True)
+    user_photo = StringProperty()
+    is_user = BooleanProperty(default=True)
+    created_at = DateProperty(auto_now_add=True)
+    update_at = DateProperty(default_now=True)
+    cards = RelationshipTo('CARD', 'HAVE', model=HAVE)
+    relations = RelationshipTo('USER', 'RELATION', model=RELATION)  # Use this line only
 
-        driver = GraphDatabase.driver("bolt://localhost:7689", auth=("neo4j", "12345678"))
-        with driver.session() as session:
-            session.run(
-                "CREATE (:User {user_name: $user_name, password: $password, user_email: $user_email, "
-                "phone_num: $phone_num, user_photo: $user_photo, is_user: $is_user, created_at: $created_at})",
-                user_name=self.user_name, password=self.password, user_email=self.user_email,
-                phone_num=self.phone_num, user_photo=self.user_photo, is_user=self.is_user, created_at=self.created_at
-            )
+class CARD(StructuredNode):
+    card_uid = StringProperty(required=False) #추가
+    card_name = StringProperty(unique_index=True, required=True)
+    card_email = StringProperty(unique_index=True, required=True)
+    card_phone = StringProperty(required=True)
+    card_intro = StringProperty()
+    card_photo = StringProperty(required=True)
+    created_at = DateProperty(auto_now_add=True)
+    update_at = DateProperty(default_now=True)
+    owners = RelationshipFrom('USER', 'HAVE', model=HAVE)
+
 
