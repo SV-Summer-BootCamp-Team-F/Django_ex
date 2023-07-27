@@ -168,41 +168,63 @@ class UserInfoView(views.APIView):
 
 
 # 유저 정보 업데이트
-class UserUpdateView(views.APIView):
+
+from django.views import View
+
+
+
+from rest_framework.views import APIView
+from rest_framework import status
+from neo4j import GraphDatabase
+
+class UserUpdateView(APIView):
     def put(self, request, *args, **kwargs):
         user_uid = kwargs.get('user_uid', None)
         if user_uid is None:
+            # 유저 UID가 없을 경우 400 Bad Request 응답 반환
             return Response({"message": "유저 UID가 필요합니다.", "result": None}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            data = serializer.validated_data
+        # 업데이트가 가능한 필드 목록
+        updatable_fields = ['user_name', 'user_email', 'password']
 
-            driver = Graph("<Your neo4j connection string>")
-            with driver.session() as session:
-                # Check if user exists
-                result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid})
-                if not result.single():
-                    return Response({"message": "존재하지 않는 유저입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
+        data = {field: request.data.get(field) for field in updatable_fields if request.data.get(field) is not None}
 
-                # Update user info
-                update_values = {key: value for key, value in data.items() if value is not None}
-                session.run("""
-                    MATCH (user:User)
-                    WHERE user.uid = $user_uid
-                    SET user += $props
-                    """, {"user_uid": user_uid, "props": update_values})
-
-                # Get updated user info
-                updated_user_info = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid}).single()
-
-                return Response({
-                    "message": "유저정보 수정 성공",
-                    "result": dict(updated_user_info)
-                }, status=status.HTTP_202_ACCEPTED)
-
-        else:
+        # Serializer로 유효성 검사
+        serializer = UserRegisterSerializer(data=data)
+        if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        with driver.session() as session:
+            # 유저가 존재하는지 확인
+            result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid})
+            if not result.single():
+                # 존재하지 않는 유저일 경우 404 Not Found 응답 반환
+                return Response({"message": "존재하지 않는 유저입니다.", "result": None}, status=status.HTTP_404_NOT_FOUND)
+
+            # 유저 정보 업데이트
+            session.run("""
+                MATCH (user:User)
+                WHERE user.uid = $user_uid
+                SET user += $props
+                """, {"user_uid": user_uid, "props": serializer.validated_data})
+
+            # 업데이트된 유저 정보 가져오기
+            updated_user_info = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user",
+                                            {"user_uid": user_uid}).single().value()
+
+            # Node 객체를 딕셔너리로 변환
+            updated_user_info = dict(updated_user_info)
+
+            # DateTime 객체를 문자열로 변환
+            if 'created_at' in updated_user_info and isinstance(updated_user_info['created_at'], datetime.datetime):
+                updated_user_info['created_at'] = updated_user_info['created_at'].isoformat()
+
+            # 202 Accepted 응답 반환
+            return Response({
+                "message": "유저정보 수정 성공",
+                "result": updated_user_info
+            }, status=status.HTTP_202_ACCEPTED)
+
 
 
 
