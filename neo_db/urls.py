@@ -9,7 +9,7 @@ urlpatterns = [
     path('users/photo/<str:user_uid>/', UpdateUserPhotoView.as_view()),  # <int:user_id> 부분에 실제 user_id를 넣습니다
     path('cards/add/', CardAddView.as_view()),
     path('cards/info/<str:user_uid>/', CardInfoView.as_view()),
-    path('cards/update/', CardUpdateView.as_view()),
+    path('cards/update/<str:card_uid>/', CardUpdateView.as_view()),
     path('relations/user/', UserRelationView.as_view(), name='create-relation'),
     path('relations/all/<str:user_uid>/', AllRelationView.as_view()),
 
