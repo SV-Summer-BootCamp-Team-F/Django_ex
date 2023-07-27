@@ -170,37 +170,40 @@ class UserInfoView(views.APIView):
 # 유저 정보 업데이트
 class UserUpdateView(views.APIView):
     def put(self, request, *args, **kwargs):
-        user_uid = kwargs.get('user_uid')
+        user_uid = kwargs.get('user_uid', None)
+        if user_uid is None:
+            return Response({"message": "유저 UID가 필요합니다.", "result": None}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
-            data['user_uid'] = user_uid
 
+            driver = Graph("<Your neo4j connection string>")
             with driver.session() as session:
+                # Check if user exists
                 result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid})
                 if not result.single():
                     return Response({"message": "존재하지 않는 유저입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
 
+                # Update user info
+                update_values = {key: value for key, value in data.items() if value is not None}
                 session.run("""
-                       MATCH (user:User)
-                       WHERE user.uid = $user_uid
-                       SET user += {
-                           name: $user_name,
-                           email: $user_email,
-                           password: $password,
-                           phone: $user_phone,
-                           photo: $user_photo,
-                           is_user: $is_user
-                       }
-                   """, data)
+                    MATCH (user:User)
+                    WHERE user.uid = $user_uid
+                    SET user += $props
+                    """, {"user_uid": user_uid, "props": update_values})
 
-            return Response({
-                "message": "유저정보 수정 성공",
-                "result": data
-            }, status=status.HTTP_202_ACCEPTED)
+                # Get updated user info
+                updated_user_info = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid}).single()
+
+                return Response({
+                    "message": "유저정보 수정 성공",
+                    "result": dict(updated_user_info)
+                }, status=status.HTTP_202_ACCEPTED)
+
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 # 유저 정보 사진 업데이트하기
@@ -230,12 +233,13 @@ class UpdateUserPhotoView(views.APIView):
 
 # 명함 등록 및 연결선 생성
 class CardAddView(views.APIView):
-    def post(self, request):
-        user_uid = request.data.get('user_uid')  # 'user_uid'를 request에서 추출
-        serializer = CardSerializer(data={**request.data, 'user_uid': user_uid})  # 'user_uid'를 serializer에 전달
+    def put(self, request, *args, **kwargs):
+        user_uid = kwargs.get('user_uid')
+
+        serializer = CardSerializer(data=request.data)
         if serializer.is_valid():
             data = serializer.validated_data
-            # 전화번호 기준
+            # # 전화번호 기준
             with driver.session() as session:
                 uid = str(uuid.uuid4())
                 data['card_uid'] = uid
@@ -266,47 +270,57 @@ class CardAddView(views.APIView):
 
             #uid 연동
             # with driver.session() as session:
-            #     uid = str(uuid.uuid4())
-            #     data['card_uid'] = uid
-            #     # 카드 추가
-            #     session.run("""
-            #         CREATE (card:Card {
-            #             uid: $card_uid,
-            #             name: $card_name,
-            #             email: $card_email,
-            #             phone: $card_phone,
-            #             intro: $card_intro,
-            #             photo: $card_photo,
-            #             created_at: date($created_at)
-            #         })
-            #     """, **data)
+            #     result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", {"user_uid": user_uid})
+            #     if not result.single():
+            #         return Response({"message": "존재하지 않는 유저입니다.", "result": None}, status=status.HTTP_204_NO_CONTENT)
             #
-            #     # 동일한 uid를 가진 유저를 찾아 카드와 연결 (HAVE 관계로 연결)
-            #     session.run("""
-            #         MATCH (user:User {uid: $user_uid}), (card:Card {uid: $card_uid})
-            #         MERGE (user)-[r:HAVE]->(card)
-            #     """, user_uid=user_uid, card_uid=data['card_uid'])
+            #     # Generate new card_uid
+            #     data['card_uid'] = str(uuid.uuid4())
             #
-            # return Response({
-            #     "message": "본인 명함 등록 성공",
-            #     "result": data
-            # }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            #     # Add card to database
+            #     session.run("""
+            #             CREATE (card:Card {
+            #                 uid: $card_uid,
+            #                 name: $user_name,
+            #                 email: $user_email,
+            #                 phone: $user_phone,
+            #                 intro: $user_intro,
+            #                 photo: $user_photo,
+            #                 created_at: date($created_at)
+            #             })
+            #         """, **data)
+            #
+            #     # Connect user to card
+            #     session.run("""
+            #             MATCH (user:User {uid: $user_uid}), (card:Card{uid: $card_phi})
+            #             MERGE (user)-[r:HAVE]->(card)
+            #         """, user_uid=user_uid, card_uid=data['card_phone'])
+            #
+            #     return Response({
+            #         "message": "본인 명함 등록 성공",
+            #         "result": data
+            #     }, status=status.HTTP_202_ACCEPTED)
+            #
+            # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 카드 정보 불러오기
 class CardInfoView(views.APIView):
-    def get(self, request, card_uid, format=None):
-
+    def get(self, request, user_uid, format=None):
         with driver.session() as session:
-            # card_uid를 사용하여 카드 정보를 검색
-            result = session.run("MATCH (card:Card) WHERE card.uid = $card_uid RETURN card", card_uid=card_uid)
-            record = result.single()
-            if record:
+            # user_uid를 사용하여 사용자와 연결된 카드 정보를 검색
+            result = session.run("""
+                                MATCH (user:User {uid: $user_uid})-[r:HAVE]->(card:Card)
+                                RETURN card
+                                """, user_uid=user_uid)
+
+            card_info = None
+            for record in result:
                 card_info = record['card']
+                break  # 첫번째 카드 정보만 가져옴
+
+            if card_info is not None:
                 res = {
-                    "message": "명함정보 불러오기 성공",
+                    "message": "명함 정보 불러오기 성공",
                     "result": {
                         "card_name": card_info['name'],
                         "card_email": card_info['email'],
@@ -317,10 +331,13 @@ class CardInfoView(views.APIView):
                 }
             else:
                 res = {
-                    "message": "해당 카드가 없습니다.",
+                    "message": "해당 사용자가 가진 카드가 없습니다.",
                     "result": None
                 }
+
             return Response(res, status=status.HTTP_200_OK)
+
+
 
 ##
 # 캬드 정보 업데이트
@@ -366,65 +383,49 @@ import logging
 
 # 관계 전체 보기
 # 전체 관계 보기(1촌)
-class RelationView(views.APIView):
+class AllRelationView(views.APIView):
     def get(self, request, user_uid, format=None):
         with driver.session() as session:
-            # user_uid를 사용하여 사용자와 그 사용자와 관계를 가진 모든 사용자 정보를 검색
-            result = session.run("""
+            # 1촌 관계를 가져옴
+            first_degree_relations = session.run("""
                 MATCH (u:User {uid: $user_uid})-[r:RELATION]->(n:User)
-                RETURN u.uid as user_uid, n.uid as card_uid, n.name as card_name, n.photo as user_photo, r.relation_name as relation_name
+                RETURN u.uid as user_uid, n.uid as friend_uid, n.name as card_name, n.photo as user_photo, r.relation_name as relation_name
             """, user_uid=user_uid)
 
-            if result.peek() is None:
-                return Response({
-                    "message": "유저 등록이 안돼있음",
-                    "result": None
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            relations = []
-            for record in result:
-                relation = {
-                    "card_uid": record['card_uid'],
-                    "card_name": record['card_name'],
-                    "user_photo": record['user_photo'],
-                    "relation_name": record['relation_name']
-                }
-                relations.append(relation)
-
-            return Response({
-                "message": "관계 전체 로드 성공",
-                "result": relations
-            }, status=status.HTTP_200_OK)
-        if result.peek() is None:
-            return Response({
-                "message": "유저 등록이 안돼있음",
-                "result": None
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-
-# 전체 관계 보기(2촌)
-class RelationDeepView(APIView):
-    def get(self, request, user_uid, format=None):
-        with driver.session() as session:
-            # user_uid를 사용하여 사용자와 그 사용자와 관계를 가진 모든 사용자 정보를 검색
-            result = session.run("""
-                MATCH (u:User {uid: $user_uid})-[:RELATION]->(:User)-[:RELATION]->(n:User)
+            # 2촌 관계를 가져옴
+            second_degree_relations = session.run("""
+                MATCH (u:User {uid: $user_uid})-[:RELATION]->(f:User)-[:RELATION]->(n:User)
                 WHERE NOT (u)-[:RELATION]->(n)
-                RETURN n.uid as card_uid, n.name as card_name, n.photo as user_photo
+                RETURN f.uid as user_uid, n.uid as card_uid, n.name as card_name, n.photo as user_photo
             """, user_uid=user_uid)
 
-            if result.peek() is None:
+            if first_degree_relations.peek() is None and second_degree_relations.peek() is None:
                 return Response({
                     "message": "유저 등록이 안돼있음",
                     "result": None
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             relations = []
-            for record in result:
+
+            # 1촌 관계 추가
+            for record in first_degree_relations:
                 relation = {
-                    "card_uid": record['card_uid'],
+                    "user_uid": record['user_uid'],
+                    "friend_uid": record['friend_uid'],
                     "card_name": record['card_name'],
                     "user_photo": record['user_photo'],
+                    "relation_name": record['relation_name'],
+                }
+                relations.append(relation)
+
+            # 2촌 관계 추가
+            for record in second_degree_relations:
+                relation = {
+                    "user_uid": record['user_uid'],
+                    "friend_uid": record['card_uid'],
+                    "card_name": record['card_name'],
+                    "user_photo": record['user_photo'],
+                    "relation_name": "",
                 }
                 relations.append(relation)
 
@@ -432,6 +433,7 @@ class RelationDeepView(APIView):
                 "message": "관계 전체 로드 성공",
                 "result": relations
             }, status=status.HTTP_200_OK)
+
 
 
 # 관계 상세 보기
@@ -462,7 +464,7 @@ class CardDetailView(views.APIView):
             }, status=status.HTTP_200_OK)
 
 
-# 번호 조회하가
+# 번호 조회하기
 class PhoneInfoView(views.APIView):
     def get(self, request, user_phone):
         with driver.session() as session:
