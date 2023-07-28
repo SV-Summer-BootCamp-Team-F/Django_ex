@@ -18,7 +18,7 @@ class USER(StructuredNode):
     user_name = StringProperty(unique_index=True, required=True)
     user_email = StringProperty(unique_index=True, required=True)
     password = StringProperty(required=True)
-    user_phone = StringProperty(required=True,unique_index=True)
+    user_phone = StringProperty(unique_index=True)
     user_photo = StringProperty()
     is_user = BooleanProperty(default=True)
     created_at = DateProperty(auto_now_add=True)

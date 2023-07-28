@@ -14,7 +14,7 @@ class UserRegisterSerializer(serializers.Serializer):
     user_name = serializers.CharField(max_length=100)
     user_email = serializers.EmailField()
     password = serializers.CharField(max_length=50)
-    user_phone = serializers.CharField(max_length=20)
+    user_phone = serializers.CharField(max_length=20, required=False)
     user_photo = serializers.CharField(read_only=True)
     is_user = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
@@ -32,7 +32,7 @@ class UserSerializer(serializers.Serializer):
     user_name = serializers.CharField(max_length=100)
     user_email = serializers.EmailField()
     password = serializers.CharField(max_length=50)
-    user_phone = serializers.CharField(max_length=20)
+    user_phone = serializers.CharField(max_length=20, read_only=True, required=False)
     user_photo = serializers.CharField(max_length=5000, allow_blank=True, required=False)
     is_user = serializers.BooleanField()
     created_at = serializers.DateTimeField()
@@ -56,7 +56,7 @@ class CardSerializer(serializers.Serializer):
     update_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, attrs):
-       # attrs['card_uid'] = str(uuid.uuid4())
+        attrs['card_uid'] = str(uuid.uuid4())
         attrs['card_photo'] = ''
         attrs['update_at'] = datetime.datetime.now()
         attrs['created_at'] = datetime.datetime.now()
