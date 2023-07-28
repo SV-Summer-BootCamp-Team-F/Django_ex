@@ -201,6 +201,7 @@ class UserUpdateView(views.APIView):
             "message": "유저정보 수정 성공",
         }, status=status.HTTP_202_ACCEPTED)
 
+#유저 사진 업데아트
 class UpdateUserPhotoView(views.APIView):
     def put(self, request, user_uid):  # url에서 user_uid를 파라미터로 받습니다
         user_photo = request.data.get('user_photo')  # 요청에서 user_photo를 얻습니다
@@ -255,7 +256,7 @@ class CardAddView(views.APIView):
                     MATCH (user:User {uid: $user_uid}), (card:Card {uid: $card_uid})
                     MERGE (user)-[r:HAVE]->(card)
                 """, user_uid=user_uid, card_uid=data['card_uid'])
-
+                print(user_uid)
             return Response({
                 "message": "본인 명함 등록 성공",
                 "result": data
@@ -264,6 +265,7 @@ class CardAddView(views.APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#카드 정보 수정
 class CardUpdateView(views.APIView):
     def put(self, request, user_uid):  # url에서 user_uid를 파라미터로 받습니다
         card_name = request.data.get('card_name')  # 요청에서 card_name를 얻습니다
@@ -342,8 +344,30 @@ class CardInfoView(views.APIView):
 
 
 
-##
-# 캬드 정보 업데이트
+#카드 프로필 사진 수정
+import json
+
+class UpdateCardPhotoView(views.APIView):
+    def put(self, request, user_uid):  # url에서 user_uid를 파라미터로 받습니다
+        card_photo = request.data.get('card_photo')  # 요청에서 card_photo를 얻습니다
+
+        with driver.session() as session:
+            # 해당 uid의 사용자 찾기
+            result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", user_uid=user_uid)
+            if not result.single():  # 사용자가 없는 경우
+                return Response({"message": "유저 등록이 안돼있음.", "result": None},
+                                status=status.HTTP_202_ACCEPTED)
+            # 해당 사용자의 카드 프로필 사진 업데이트
+            session.run("""
+                    MATCH (user:User)-[:HAVE]->(card:Card)
+                    WHERE user.uid = $user_uid
+                    SET card.photo = $card_photo
+               """, user_uid=user_uid, card_photo=card_photo)
+
+        return Response({
+            "message": "카드프로필사진 수정 성공",
+        }, status=status.HTTP_202_ACCEPTED)
+
 
 
 
