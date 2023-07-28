@@ -184,9 +184,9 @@ class UpdateUserPhotoView(views.APIView):
 
 # 명함 등록 (연결선 생성)
 class CardAddView(views.APIView):
-    def post(self, request):
-        user_uid = request.data.get('user_uid')  # 'user_uid'를 request에서 추출
-        serializer = CardSerializer(data={**request.data, 'user_uid': user_uid})  # 'user_uid'를 serializer에 전달
+
+    def post(self, request, user_uid):
+        serializer = CardSerializer(data={**request.data, 'user_uid': user_uid})
 
         if serializer.is_valid():
             data = serializer.validated_data
@@ -212,7 +212,7 @@ class CardAddView(views.APIView):
                     MATCH (user:User {uid: $user_uid}), (card:Card {uid: $card_uid})
                     MERGE (user)-[r:HAVE]->(card)
                 """, user_uid=user_uid, card_uid=data['card_uid'])
-                print(user_uid)
+
             return Response({
                 "message": "본인 명함 등록 성공",
                 "result": data

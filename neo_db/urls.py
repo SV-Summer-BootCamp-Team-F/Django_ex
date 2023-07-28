@@ -1,5 +1,7 @@
 # backend/neo_db/urls.py
 from django.urls import path
+from django.conf import settings  # 이하를 추가
+from django.conf.urls.static import static
 from .views import RegisterView, LoginView, UserInfoView, UserUpdateView, UpdateUserPhotoView, CardAddView, CardUpdateView ,UserRelationView, AllRelationView, CardDetailView,PhoneInfoView, CardInfoView, UpdateCardPhotoView
 
 
@@ -14,7 +16,7 @@ urlpatterns = [
     path('users/photo/<str:user_uid>/', UpdateUserPhotoView.as_view()),  # <int:user_id> 부분에 실제 user_id를 넣습니다
 
     # 명함 등록 , 명함 정보 불러오기 ,명함 정보 수정, 명함 프로필 사진 수정
-    path('cards/add/', CardAddView.as_view()),
+    path('cards/add/<str:user_uid>/', CardAddView.as_view()),
     path('cards/info/<str:user_uid>/', CardInfoView.as_view()),
     path('cards/update/<str:user_uid>/', CardUpdateView.as_view()),
     path('cards/photo/<str:user_uid>/', UpdateCardPhotoView.as_view()),  # <int:user_id> 부분에 실제 user_id를 넣습니다
@@ -26,5 +28,9 @@ urlpatterns = [
     path('relations/phone/<str:user_phone>/', PhoneInfoView.as_view()),
     #path('relations/nonuser', NonUserRegisterView.as_view(), name='nonuser-relation'),
 
-]
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+#/relations/phone/{user_phone}
+#media : 사용자가 웹에 업로드한 파일
+#static : 개발 단계에서 업로드해서 보여주는 파일. default image
 #/relations/phone/{user_phone}

@@ -113,6 +113,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+STATIC_URL = '/static/'
+#실제 경로 아닌 파일이 접근 할 수 있게 url 주기 위한 기본적인 베이스
+
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
@@ -183,11 +186,28 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+#STATIC_URL = '/static/'
+#프로젝트 이미 정해져 있는 파일, 개발할 때 이미 준비되어진 파일
+#웹 사이트에서 static파일을 참조할 때 사용하는 url 설정
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+#static 파일들 저장될 디렉토리의 경로를 설정
+#static 이라는 디렉토리 파일에 staitc 파일을 저장할 예정
+
+# Base Directory의 static 폴더
+STATIC_ROOT = BASE_DIR / "static"
+STATIC_URL = 'static/'
+
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+
+STATICFILES_DIRS=[
+    os.path.join(BASE_DIR,'neo_db','static')
+] #static 파일들이 어디에 있는지를 쓰는곳
+
+#Django 개발 서버: STATICFILES_DIR
+#웹 서버: STATIC_ROOT
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
