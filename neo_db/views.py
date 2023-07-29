@@ -1,4 +1,6 @@
 # views.py
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -159,27 +161,27 @@ class UserUpdateView(views.APIView):
 
 #유저 프로필 사진 수정
 class UpdateUserPhotoView(views.APIView):
-    def put(self, request, user_uid):  # url에서 user_uid를 파라미터로 받습니다
-        user_photo = request.data.get('user_photo')  # 요청에서 user_photo를 얻습니다
-        # if user_photo is None:
-        #   return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, user_uid):
+        user_photo = request.FILES.get('user_photo')  # 이미지 파일 얻기
+
+        if not user_photo:
+            return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_photo_path = default_storage.save('images/' + user_photo.name, ContentFile(user_photo.read()))  # 이미지 저장
+        user_photo_url = request.build_absolute_uri(settings.MEDIA_URL + user_photo_path)  # 이미지 URL 생성
 
         with driver.session() as session:
-            # 해당 uid의 사용자 찾기
             result = session.run("MATCH (user:User) WHERE user.uid = $user_uid RETURN user", user_uid=user_uid)
-            if not result.single():  # 사용자가 없는 경우
-                return Response({"message": "유저 등록이 안돼있음.", "result": None},
-                                status=status.HTTP_202_ACCEPTED)
-            # 사용자 프로필 사진 업데이트
-            session.run("""
-                    MATCH (user:User)
-                    WHERE user.uid = $user_uid
-                    SET user.photo = $user_photo
-               """, user_uid=user_uid, user_photo=user_photo)
+            if not result.single():
+                return Response({"message": "유저 등록이 안돼있음.", "result": None}, status=status.HTTP_202_ACCEPTED)
 
-        return Response({
-            "message": "유저프로필사진 수정 성공",
-        }, status=status.HTTP_202_ACCEPTED)
+            session.run("""
+                MATCH (user:User)
+                WHERE user.uid = $user_uid
+                SET user.photo = $user_photo
+           """, user_uid=user_uid, user_photo=user_photo_url)
+
+        return Response({"message": "유저프로필사진 수정 성공", "photo_url": user_photo_url}, status=status.HTTP_202_ACCEPTED)
 
 
 # 명함 등록 (연결선 생성)
@@ -302,8 +304,14 @@ class CardUpdateView(views.APIView):
 
 #명함 프로필 사진 수정
 class UpdateCardPhotoView(views.APIView):
-    def put(self, request, user_uid):  # url에서 user_uid를 파라미터로 받습니다
-        card_photo = request.data.get('card_photo')  # 요청에서 card_photo를 얻습니다
+    def put(self, request, user_uid):
+        card_photo_file = request.FILES.get('card_photo')  # 이미지 파일 얻기
+
+        if not card_photo_file:
+            return Response({"message": "사진 데이터가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        card_photo_path = default_storage.save('images/' + card_photo_file.name, ContentFile(card_photo_file.read()))  # 이미지 저장
+        card_photo_url = request.build_absolute_uri(settings.MEDIA_URL + card_photo_path)  # 이미지 URL 생성
 
         with driver.session() as session:
             # 해당 uid의 사용자 찾기
@@ -315,12 +323,12 @@ class UpdateCardPhotoView(views.APIView):
             session.run("""
                     MATCH (user:User)-[:HAVE]->(card:Card)
                     WHERE user.uid = $user_uid
-                    SET card.photo = $card_photo
-               """, user_uid=user_uid, card_photo=card_photo)
+                    SET card.photo = $card_photo_url
+               """, user_uid=user_uid, card_photo_url=card_photo_url)
 
         return Response({
-            "message": "카드프로필사진 수정 성공",
-        }, status=status.HTTP_202_ACCEPTED)
+            "message": "카드프로필사진 수정 성공","photo_url": card_photo_url}, status=status.HTTP_202_ACCEPTED)
+
 
 
 

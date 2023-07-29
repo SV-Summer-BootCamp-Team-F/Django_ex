@@ -3,9 +3,12 @@
 import datetime
 import uuid
 
+from django.core.files.storage import default_storage
 from rest_framework import serializers
 import bcrypt
 from neo4j import GraphDatabase, basic_auth
+
+from backend import settings
 from .models import USER, CARD, HAVE, RELATION  # models 모듈에서 USER, CARD, HAVE 클래스를 불러옵니다.
 
 
@@ -15,13 +18,22 @@ class UserRegisterSerializer(serializers.Serializer):
     user_email = serializers.EmailField()
     password = serializers.CharField(max_length=50)
     user_phone = serializers.CharField(max_length=20, required=False)
-    user_photo = serializers.ImageField(required=False)  #serializers.CharField(read_only=False)
+    user_photo = serializers.ImageField(required=False, default='http://127.0.0.1:8000/static/person.png')
     is_user = serializers.BooleanField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, attrs):
         attrs['user_uid'] = str(uuid.uuid4())
         # attrs['user_photo'] = ''
+        if 'user_photo' in attrs:
+            # Check if the 'user_photo' field has a file
+            if hasattr(attrs['user_photo'], 'file'):
+                # Save the file
+                photo = attrs['user_photo']
+                photo_name = default_storage.save(photo.name, photo)
+                # Generate file URL
+                photo_url = settings.MEDIA_URL + photo_name
+                attrs['user_photo'] = photo_url
         if not attrs.get('user_photo'):  # 이미지를 제공하지 않았을 경우
             attrs['user_photo'] = '/static/person.png'  # 기본 이미지 경로를 사용
         attrs['is_user'] = True
@@ -53,13 +65,15 @@ class CardSerializer(serializers.Serializer):
     card_email = serializers.EmailField()
     card_phone = serializers.CharField(max_length=20)
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
-    card_photo = serializers.CharField(read_only=True)
+    card_photo = serializers.ImageField(required=False)
     created_at = serializers.DateTimeField(read_only=True)
     update_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, attrs):
         attrs['card_uid'] = str(uuid.uuid4())
-        attrs['card_photo'] = ''
+        # attrs['user_photo'] = ''
+        if not attrs.get('card_photo'):  # 이미지를 제공하지 않았을 경우
+            attrs['card_photo'] = '/static/card.png'  # 기본 이미지 경로를 사용
         attrs['update_at'] = datetime.datetime.now()
         attrs['created_at'] = datetime.datetime.now()
         return attrs

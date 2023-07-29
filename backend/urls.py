@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
 # backend/urls.py
 
 # backend/urls.py
@@ -21,6 +22,8 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
+from backend import settings
 
 schema_view = get_schema_view(                  #  API 스키마를 만들기 위한 뷰를 생성하는 데 사용,Swagger UI와 연동되어 API 문서를 제공하고 시각적으로 보여줌
     openapi.Info(                               #  API의 기본 정보를 설정
@@ -43,5 +46,8 @@ urlpatterns = [
     # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),  # Redoc UI를 사용하여 API 스키마를 조회할 수 있도록 설정
     # path('api/', include('neo_db.urls'))   #neo_db.urls로 시작하는 URL을 include,  /USER/ 경로를 처리하기 위해 해당 애플리케이션의 URL 설정을 추가하라는 의미
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 #
