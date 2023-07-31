@@ -20,9 +20,16 @@
     2. port가 bolt인지 확인 해주세요!
 - 노드를 삭제,생성, 전체보기 하고 싶어요!
     1. 전체 노드 보기! → match (n) return n
-    2. 노드 하나 보기! → match (변수:노드속성) return (변수)        
-    3. 노드 생성하기! → create (변수:노드속성 {속성:값}) return (변수)
-    4. 전체 노드 삭제하기 → MATCH (n) DETACH DELETE n
-    5. 어떤 하나의 관계 삭제하고 싶어! → MATCH (변수:노드속성 {속성: 값})-[관계변수:관계속성]->(변수:노드속성 {속성: 값}) DELETE 관계변수
-    6. 하나의 관계를 생성하기! → match 문으로 찾고, create로 생성
-  백엔드 페이지에 예시 사진 올려 놓았습니다
+    2. 노드 하나 보기! → match (변수:노드속성) return (변수)
+    ![image](https://github.com/SV-Summer-BootCamp-Team-F/backend/assets/96772297/94989651-dc50-49ad-b79c-e42ffaf7017a)
+
+    4. 노드 생성하기! → create (변수:노드속성 {속성:값}) return (변수)
+    ![image](https://github.com/SV-Summer-BootCamp-Team-F/backend/assets/96772297/bc9139d1-9c94-4f59-a5ee-e28c3a564289)
+    
+    5. 전체 노드 삭제하기 → MATCH (n) DETACH DELETE n
+    6. 어떤 하나의 관계 삭제하고 싶어! → MATCH (변수:노드속성 {속성: 값})-[관계변수:관계속성]->(변수:노드속성 {속성: 값}) DELETE 관계변수
+    ![image](https://github.com/SV-Summer-BootCamp-Team-F/backend/assets/96772297/3f6f644b-453a-4db1-b89c-2c258c16391d)
+
+    7. 하나의 관계를 생성하기! → match 문으로 찾고, create로 생성
+    ![image](https://github.com/SV-Summer-BootCamp-Team-F/backend/assets/96772297/3cafd510-0453-41ea-a6be-5717b5b44c4a)
+
