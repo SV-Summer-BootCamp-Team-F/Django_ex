@@ -22,10 +22,10 @@ urlpatterns = [
     path('cards/photo/<str:user_uid>/', UpdateCardPhotoView.as_view()),  # <int:user_id> 부분에 실제 user_id를 넣습니다
 
     # 유저 관계 연결 , 관계 전체 보기 , 명함 관계 상세 보기 , 번호 조회하기
-    path('relations/user/', UserRelationView.as_view(), name='create-relation'),
+    path('relations/user/<str:user_uid>/', UserRelationView.as_view(), name='create-relation'),
     path('relations/all/<str:user_uid>/', AllRelationView.as_view()),
     path('relations/detail/<str:card_uid>/', CardDetailView.as_view(), name='card-detail'),
-    path('relations/phone/<str:user_phone>/', PhoneInfoView.as_view()),
+    path('relations/phone/<str:card_phone>/', PhoneInfoView.as_view()),
     #path('relations/nonuser', NonUserRegisterView.as_view(), name='nonuser-relation'),
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

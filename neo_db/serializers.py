@@ -65,7 +65,7 @@ class CardSerializer(serializers.Serializer):
     card_email = serializers.EmailField()
     card_phone = serializers.CharField(max_length=20)
     card_intro = serializers.CharField(max_length=3000, allow_blank=True)
-    card_photo = serializers.ImageField(required=False)
+    card_photo = serializers.ImageField(required=False, default='http://127.0.0.1:8000/static/card.png')
     created_at = serializers.DateTimeField(read_only=True)
     update_at = serializers.DateTimeField(read_only=True)
 

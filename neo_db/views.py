@@ -1,5 +1,9 @@
 # views.py
 from django.core.files.base import ContentFile
+from drf_yasg import openapi
+#swagger
+from rest_framework import permissions
+from drf_yasg.utils import swagger_auto_schema
 from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from rest_framework.views import APIView
@@ -38,6 +42,15 @@ driver = GraphDatabase.driver(config.DATABASE_URL, auth=basic_auth(*config.DATAB
 
 # 회원가입 (유저 정보 등록)
 class RegisterView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @swagger_auto_schema(
+        request_body=UserRegisterSerializer,
+        manual_parameters = [
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="yyyy-mm-dd", type=openapi.FORMAT_DATE),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="yyyy-mm-dd", type=openapi.FORMAT_DATE),
+        ]
+        )
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -335,12 +348,11 @@ class UpdateCardPhotoView(views.APIView):
 
 # 유저 관계 연결
 class UserRelationView(APIView):
-    def post(self, request):
+    def post(self, request, user_uid):
         data = request.data
-        user_uid = data.get('user_uid')  # Get user_uid from request data
-        user_phone = data.get('user_phone')
+        card_phone = data.get('card_phone')  # Change user_phone to card_phone
         relation_name = data.get('relation_name')
-        memo = data.get('memo')
+        memo = data.get('memo', '')
 
         with driver.session() as session:
             result = session.run("MATCH (u:User {uid: $user_uid}) RETURN u.uid as user_uid", user_uid=user_uid)
@@ -350,10 +362,10 @@ class UserRelationView(APIView):
                 return Response({"message": "uid를 찾을 수 없습니다.", "result": None},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            result = session.run("MATCH (u:User {phone: $user_phone}) RETURN u", user_phone=user_phone)
+            result = session.run("MATCH (u:User {phone: $card_phone}) RETURN u", card_phone=card_phone)  # Change user_phone to card_phone
             user2 = result.single()
             if user2 is None:
-                logging.error("User with phone %s not found", user_phone)
+                logging.error("User with phone %s not found", card_phone)  # Change user_phone to card_phone
                 return Response({"message": "전화번호를 찾을 수 없습니다.", "result": None},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -362,11 +374,12 @@ class UserRelationView(APIView):
                 MATCH (u1:User), (u2:User)
                 WHERE u1.uid = $uid1 AND u2.phone = $phone2
                 MERGE (u1)-[r:RELATION {relation_name: $name, memo: $memo}]->(u2)
-            """, uid1=user1['user_uid'], phone2=user_phone, name=relation_name, memo=memo)
+            """, uid1=user1['user_uid'], phone2=card_phone, name=relation_name, memo=memo)  # Change user_phone to card_phone
 
-        return Response({"message": "회원 끼리 연결 성공",
-                        },
+        return Response({"message": "회원 끼리 연결 성공"},
                         status=status.HTTP_201_CREATED)
+
+
 
 
 # 관계 전체 보기
@@ -453,12 +466,12 @@ class CardDetailView(views.APIView):
 
 # 번호 조회하기
 class PhoneInfoView(views.APIView):
-    def get(self, request, user_phone):
+    def get(self, request, card_phone):
         with driver.session() as session:
             result = session.run("""
-                MATCH (u:User) WHERE u.phone = $user_phone 
+                MATCH (u:Card) WHERE u.phone = $card_phone 
                 RETURN u
-            """, user_phone=user_phone)
+            """, card_phone=card_phone)
             user = result.single()
             if user is None:
                 return Response({
