@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'django_neomodel', # neo4j연동에 필요
     'rest_framework', #장고 연동을 위한 필요
     'neo_db.apps.Neo_dbConfig', #이건 neo4j?
-    'neo4django',
+    #'neo4django',
     'corsheaders',
 ]
 
