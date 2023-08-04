@@ -45,6 +45,7 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),                 #  /swagger/ 경로에 대한 URL 패턴으로, Swagger UI를 사용하여 API 스키마를 조회
     # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),  # Redoc UI를 사용하여 API 스키마를 조회할 수 있도록 설정
     # path('api/', include('neo_db.urls'))   #neo_db.urls로 시작하는 URL을 include,  /USER/ 경로를 처리하기 위해 해당 애플리케이션의 URL 설정을 추가하라는 의미
+    path('', include('django_prometheus.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
